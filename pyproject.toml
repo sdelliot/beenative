@@ -107,8 +107,24 @@ beenative = { workspace = true }
 org = "com.beenative.app"
 product = "BeeNative"
 company = "BeeNative"
-copyright = "Copyright (C) 2026 BeeNative Team"
+copyright = "Copyright © 2026 BeeNative Team"
 description = "Native Plant Finder for North Carolina"
+build_number = 1
 
 [tool.flet.app]
 path = "beenative"
+module = "main"
+# Keep your window clean until setup is done
+hide_window_on_start = true 
+
+[tool.flet.app.boot_screen]
+show = true
+message = "Preparing environment..."
+
+[tool.flet.compile]
+app = true
+packages = true
+
+[tool.flet.cleanup]
+app = true
+packages = true
