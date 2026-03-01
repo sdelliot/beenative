@@ -4,6 +4,10 @@ PACKAGE_SLUG=beenative
 PYTHON_VERSION := $(shell cat .python-version)
 PYTHON_SHORT_VERSION := $(shell echo $(PYTHON_VERSION) | grep -o '[0-9].[0-9]*')
 
+# Detect OS
+# We check if apt-get exists and if the OS-release file contains "debian" or "ubuntu"
+IS_DEBIAN := $(shell command -v apt-get >/dev/null 2>&1 && grep -E 'debian|ubuntu' /etc/os-release >/dev/null 2>&1 && echo yes || echo no)
+
 ifeq ($(USE_SYSTEM_PYTHON), true)
 	PYTHON_PACKAGE_PATH:=$(shell python -c "import sys; print(sys.path[-1])")
 	PYTHON_ENV :=
@@ -27,7 +31,29 @@ PYTHON_DEPS := $(PACKAGE_CHECK)
 all: $(PACKAGE_CHECK)
 
 .PHONY: install
-install: uv $(PYTHON_VENV) sync
+install: install-deps sync-python
+
+.PHONY: sync-python
+sync-python:
+	@echo "--- Syncing Python dependencies ---"
+	uv $(PYTHON_VENV) sync
+
+.PHONY: install-deps
+install-deps:
+ifeq ($(IS_DEBIAN),yes)
+	@echo "--- Debian-based Linux detected. Installing system dependencies ---"
+	sudo apt update --allow-releaseinfo-change
+	sudo apt-get install -y --no-install-recommends \
+		clang ninja-build libgtk-3-dev libasound2-dev libmpv-dev mpv \
+		libcairo2-dev libffi-dev libjpeg-dev \
+		libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev libgstreamer-plugins-bad1.0-dev \
+		gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly \
+		gstreamer1.0-libav gstreamer1.0-tools gstreamer1.0-x gstreamer1.0-alsa gstreamer1.0-gl gstreamer1.0-gtk3 \
+		gstreamer1.0-qt5 gstreamer1.0-pulseaudio pkg-config libsecret-1-0 libsecret-1-dev
+	sudo apt-get clean
+else
+	@echo "--- Skipping system dependencies: Not a Debian-based Linux system ---"
+endif
 
 .venv:
 	$(UV) venv --python $(PYTHON_VERSION)
