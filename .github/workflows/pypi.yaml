@@ -6,6 +6,7 @@ on:
 
 env:
   PUBLISH_TO_PYPI: false
+  USE_SYSTEM_PYTHON: true
 
 jobs:
   pypi:

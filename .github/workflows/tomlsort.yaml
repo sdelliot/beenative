@@ -2,7 +2,14 @@ name: TOML Formatting
 
 on:
   push:
+    branches:
+      - main
+    tags:
+      - "v*"
   pull_request:
+
+env:
+  USE_SYSTEM_PYTHON: true
 
 jobs:
   tomlsort:

@@ -2,7 +2,14 @@ name: Alembic Migration Check
 
 on:
   push:
+    branches:
+      - main
+    tags:
+      - "v*"
   pull_request:
+
+env:
+  USE_SYSTEM_PYTHON: true
 
 jobs:
   alembic:

@@ -1,7 +1,11 @@
 name: Build Flet App 
 
 on: 
-  push: 
+  push:
+    branches:
+      - main
+    tags:
+      - "v*"
   pull_request: 
   workflow_dispatch: 
 
@@ -10,7 +14,8 @@ env:
   PYTHONUTF8: 1 
 
   # https://docs.flet.dev/reference/environment-variables
-  FLET_CLI_NO_RICH_OUTPUT: 1 
+  FLET_CLI_NO_RICH_OUTPUT: 1
+  USE_SYSTEM_PYTHON: true
 
 jobs:
   build:
