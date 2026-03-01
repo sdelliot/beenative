@@ -29,7 +29,7 @@ dependencies = [
   "beautifulsoup4>=4.14.3",
   "flet>=0.80.5",
   "greenlet>=3.1.1",
-  "pillow>=12.1.0",
+  "pillow>=11.1.0",
   "pydantic~=2.0",
   "pydantic-settings",
   "reportlab>=4.4.9",

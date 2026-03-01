@@ -9,7 +9,7 @@ on:
   pull_request:
 
 env:
-  USE_SYSTEM_PYTHON: true
+  USE_SYSTEM_PYTHON: false
 
 jobs:
   tomlsort:

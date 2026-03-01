@@ -8,7 +8,7 @@ resolution-markers = [
 ]
 
 [options]
-exclude-newer = "2026-02-22T03:04:40.276956Z"
+exclude-newer = "2026-02-22T03:15:11.60734Z"
 exclude-newer-span = "P1W"
 
 [[package]]
@@ -140,7 +140,7 @@ requires-dist = [
     { name = "beenative", marker = "extra == 'beenative'", editable = "." },
     { name = "flet", specifier = ">=0.80.5" },
     { name = "greenlet", specifier = ">=3.1.1" },
-    { name = "pillow", specifier = ">=12.1.0" },
+    { name = "pillow", specifier = ">=11.1.0" },
     { name = "pydantic", specifier = "~=2.0" },
     { name = "pydantic-settings" },
     { name = "reportlab", specifier = ">=4.4.9" },
