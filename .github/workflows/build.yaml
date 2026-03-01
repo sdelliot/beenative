@@ -63,12 +63,6 @@ jobs:
             build_cmd: "flet build ios-simulator"
             artifact_path: build/ios-simulator
 
-          # -------- Web --------
-          - name: web
-            runner: ubuntu-latest
-            build_cmd: "flet build web"
-            artifact_path: build/web
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4

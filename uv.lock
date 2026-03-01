@@ -8,7 +8,7 @@ resolution-markers = [
 ]
 
 [options]
-exclude-newer = "2026-02-09T02:06:12.804226Z"
+exclude-newer = "2026-02-22T03:04:40.276956Z"
 exclude-newer-span = "P1W"
 
 [[package]]
@@ -139,7 +139,7 @@ requires-dist = [
     { name = "beautifulsoup4", specifier = ">=4.14.3" },
     { name = "beenative", marker = "extra == 'beenative'", editable = "." },
     { name = "flet", specifier = ">=0.80.5" },
-    { name = "greenlet", specifier = ">=3.3.1" },
+    { name = "greenlet", specifier = ">=3.1.1" },
     { name = "pillow", specifier = ">=12.1.0" },
     { name = "pydantic", specifier = "~=2.0" },
     { name = "pydantic-settings" },
