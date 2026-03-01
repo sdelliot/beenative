@@ -72,7 +72,12 @@ beenative = [
 ]
 
 [tool.ruff]
-exclude = [".venv", "./beenative/_version.py", "./beenative/db/env.py", "testpad.ipynb"]
+exclude = [
+  ".venv",
+  "./beenative/_version.py",
+  "./beenative/db/env.py",
+  "testpad.ipynb"
+]
 line-length = 120
 
 [tool.coverage.run]
@@ -115,7 +120,7 @@ build_number = 1
 path = "beenative"
 module = "main"
 # Keep your window clean until setup is done
-hide_window_on_start = true 
+hide_window_on_start = true
 
 [tool.flet.app.boot_screen]
 show = true
