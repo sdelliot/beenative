@@ -1,8 +1,4 @@
 SHELL := /bin/bash
-<<<<<<< HEAD
-MIGRATION_DATABASE:=./migrate.db
-=======
->>>>>>> main
 
 PACKAGE_SLUG=beenative
 PYTHON_VERSION := $(shell cat .python-version)
