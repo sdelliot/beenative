@@ -170,4 +170,4 @@ paracelsus_check:
 
 .PHONY: check_ungenerated_migrations
 check_ungenerated_migrations:
-	$(UV) run alembic check
+	$(UV) run alembic -c ./beenative/assets/alembic.ini check
