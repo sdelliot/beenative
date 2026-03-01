@@ -36,7 +36,7 @@ install: install-deps sync-python
 .PHONY: sync-python
 sync-python:
 	@echo "--- Syncing Python dependencies ---"
-	uv $(PYTHON_VENV) sync
+	VIRTUAL_ENV=$(PYTHON_VENV) uv sync
 
 .PHONY: install-deps
 install-deps:
@@ -130,8 +130,8 @@ dapperdata_check:
 
 .PHONY: tomlsort_check
 tomlsort_check:
-	$(PYTHON_ENV) tombi lint $$(find . -not -path "./.venv/*" -name "*.toml")
-	$(PYTHON_ENV) tombi format $$(find . -not -path "./.venv/*" -name "*.toml") --check
+	$(UV) run tombi lint $$(find . -not -path "./.venv/*" -name "*.toml")
+	$(UV) run tombi format $$(find . -not -path "./.venv/*" -name "*.toml") --check
 
 
 
