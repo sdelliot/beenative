@@ -36,32 +36,32 @@ jobs:
             build_cmd: "flet build macos"
             artifact_path: build/macos
 
-          - name: windows
-            runner: windows-latest
-            build_cmd: "flet build windows"
-            artifact_path: build/windows
+          # - name: windows
+          #   runner: windows-latest
+          #   build_cmd: "flet build windows"
+          #   artifact_path: build/windows
 
           # -------- Android --------
-          - name: aab
-            runner: ubuntu-latest
-            build_cmd: "flet build aab"
-            artifact_path: build/aab
+          # - name: aab
+          #   runner: ubuntu-latest
+          #   build_cmd: "flet build aab"
+          #   artifact_path: build/aab
 
-          - name: apk
-            runner: ubuntu-latest
-            build_cmd: "flet build apk"
-            artifact_path: build/apk
+          # - name: apk
+          #   runner: ubuntu-latest
+          #   build_cmd: "flet build apk"
+          #   artifact_path: build/apk
 
           # -------- iOS --------
-          - name: ipa
-            runner: macos-latest
-            build_cmd: "flet build ipa"
-            artifact_path: build/ipa
+          # - name: ipa
+          #   runner: macos-latest
+          #   build_cmd: "flet build ipa"
+          #   artifact_path: build/ipa
 
-          - name: ios-simulator
-            runner: macos-latest
-            build_cmd: "flet build ios-simulator"
-            artifact_path: build/ios-simulator
+          # - name: ios-simulator
+          #   runner: macos-latest
+          #   build_cmd: "flet build ios-simulator"
+          #   artifact_path: build/ios-simulator
 
     steps:
       - name: Checkout repository
