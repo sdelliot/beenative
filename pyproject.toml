@@ -131,6 +131,24 @@ message = "Preparing environment..."
 dependencies = [
     "pillow", 
 ]
+icon = "beenative_logo_only_2048.png"
+
+[tool.flet.ios]
+icon = "beenative_logo_only_2048.png"
+
+[tool.flet.android]
+icon = "beenative_logo_only_256.png"
+
+[tool.flet.windows]
+icon = "beenative_logo_only_256.png"
+
+[tool.flet.web]
+icon = "beenative_logo_only_512.png"
+
+[tool.flet.splash]
+color = "#F4F7F5"
+dark_color = "#121A13"
+
 # Ensure your build command uses the extra index
 # uv run flet build macos --extra-index-url https://pypi.flet.dev
 
