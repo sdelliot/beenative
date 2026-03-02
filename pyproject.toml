@@ -126,6 +126,14 @@ module = "main"
 show = true
 message = "Preparing environment..."
 
+[tool.flet.macos]
+# This forces the build to look at Flet's patched wheels first
+dependencies = [
+    "pillow", 
+]
+# Ensure your build command uses the extra index
+# uv run flet build macos --extra-index-url https://pypi.flet.dev
+
 # [tool.flet.compile]
 # app = false
 # packages = true

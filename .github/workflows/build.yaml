@@ -76,7 +76,7 @@ jobs:
       - name: Build app
         shell: bash
         run: |
-          uv run ${{ matrix.build_cmd }} --build-number ${{ github.run_number }} --yes --verbose --skip-flutter-doctor
+          uv run ${{ matrix.build_cmd }} --extra-index-url https://pypi.flet.dev --build-number ${{ github.run_number }} --yes --verbose --skip-flutter-doctor
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v5.0.0
