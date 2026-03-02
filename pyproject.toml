@@ -127,7 +127,7 @@ show = true
 message = "Preparing environment..."
 
 [tool.flet.compile]
-app = true
+app = false
 packages = true
 
 [tool.flet.cleanup]
