@@ -5,11 +5,7 @@ PYTHON_VERSION := $(shell cat .python-version)
 PYTHON_SHORT_VERSION := $(shell echo $(PYTHON_VERSION) | grep -o '[0-9].[0-9]*')
 
 # Detect OS
-# We check if apt-get exists and if the OS-release file contains "debian" or "ubuntu"
-IS_DEBIAN := $(shell command -v apt-get >/dev/null 2>&1 && grep -E 'debian|ubuntu' /etc/os-release >/dev/null 2>&1 && echo yes || echo no)
-# Detect OS
 UNAME_S := $(shell uname -s)
-
 
 ifeq ($(USE_SYSTEM_PYTHON), true)
 	PYTHON_PACKAGE_PATH:=$(shell python -c "import sys; print(sys.path[-1])")
@@ -45,6 +41,9 @@ sync-python:
 install-deps:
 ifeq ($(UNAME_S),Linux)
 	@echo "--- Linux detected. Installing apt dependencies ---"
+	# Detect OS
+	# We check if apt-get exists and if the OS-release file contains "debian" or "ubuntu"
+	IS_DEBIAN := $(shell command -v apt-get >/dev/null 2>&1 && grep -E 'debian|ubuntu' /etc/os-release >/dev/null 2>&1 && echo yes || echo no)
 ifeq ($(IS_DEBIAN),yes)
 	@echo "--- Debian-based Linux detected. Installing system dependencies ---"
 	sudo apt update --allow-releaseinfo-change

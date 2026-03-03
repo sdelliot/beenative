@@ -73,6 +73,14 @@ jobs:
       - name: Install Dependencies
         run: make install
 
+      - name: Install macOS System Dependencies
+        if: runner.os == 'macOS'
+        run: |
+          brew install libjpeg libtiff little-cms2 openjpeg webp
+          # Ensure the compiler can find them
+          echo "LDFLAGS=-L/opt/homebrew/opt/libjpeg/lib -L/opt/homebrew/opt/libtiff/lib" >> $GITHUB_ENV
+          echo "CPPFLAGS=-I/opt/homebrew/opt/libjpeg/include -I/opt/homebrew/opt/libtiff/include" >> $GITHUB_ENV
+
       - name: Build app
         shell: bash
         run: |
