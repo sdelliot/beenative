@@ -131,6 +131,7 @@ message = "Preparing environment..."
 dependencies = [
     "pillow", 
 ]
+source_packages = ["pillow"]
 icon = "beenative_logo_only_2048.png"
 
 [tool.flet.ios]
