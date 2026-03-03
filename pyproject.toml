@@ -134,6 +134,10 @@ dependencies = [
 source_packages = ["pillow"]
 icon = "beenative_logo_only_2048.png"
 
+[tool.flet.macos.cleanup]
+# This prevents Flet from deleting "non-essential" files in site-packages
+packages = false
+
 [tool.flet.ios]
 icon = "beenative_logo_only_2048.png"
 
