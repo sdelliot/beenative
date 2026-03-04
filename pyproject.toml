@@ -129,7 +129,7 @@ message = "Preparing environment..."
 [tool.flet.macos]
 # This forces the build to look at Flet's patched wheels first
 dependencies = [
-    "pillow", 
+  "pillow",
 ]
 source_packages = ["pillow"]
 icon = "beenative_logo_only_2048.png"

@@ -76,15 +76,54 @@ jobs:
       - name: Install macOS System Dependencies
         if: runner.os == 'macOS'
         run: |
-          brew install libjpeg libtiff little-cms2 openjpeg webp
-          # Ensure the compiler can find them
-          echo "LDFLAGS=-L/opt/homebrew/opt/libjpeg/lib -L/opt/homebrew/opt/libtiff/lib" >> $GITHUB_ENV
-          echo "CPPFLAGS=-I/opt/homebrew/opt/libjpeg/include -I/opt/homebrew/opt/libtiff/include" >> $GITHUB_ENV
+          # Use -q for cleaner logs
+          brew install -q libjpeg libtiff little-cms2 openjpeg webp
+
+          # Note: macos-latest (M1/M2) uses /opt/homebrew. Intel uses /usr/local.
+          if [ -d "/opt/homebrew/opt" ]; then
+            BREW_PREFIX="/opt/homebrew"
+          else
+            BREW_PREFIX="/usr/local"
+          fi
+
+          echo "LDFLAGS=-L$BREW_PREFIX/opt/libjpeg/lib -L$BREW_PREFIX/opt/libtiff/lib" >> $GITHUB_ENV
+          echo "CPPFLAGS=-I$BREW_PREFIX/opt/libjpeg/include -I$BREW_PREFIX/opt/libtiff/include" >> $GITHUB_ENV
 
       - name: Build app
         shell: bash
         run: |
           uv run ${{ matrix.build_cmd }} --build-number ${{ github.run_number }} --yes --verbose --skip-flutter-doctor
+
+      - name: Fix macOS Missing Dylibs
+        if: matrix.name == 'macos'
+        run: |
+          echo "Starting post-build dylib injection..."
+
+          # 1. Define Paths
+          # Note: flet build creates a 'build' folder in project root
+          BUNDLE_PIL="build/macos/BeeNative.app/Contents/Frameworks/serious_python_darwin.framework/Resources/python.bundle/Contents/Resources/site-packages/PIL"
+
+          # serious_python stores temporary site-packages during build here:
+          SOURCE_DYLIBS_ARM="build/site-packages/arm64/PIL/.dylibs"
+          SOURCE_DYLIBS_X86="build/site-packages/x86_64/PIL/.dylibs"
+
+          # 2. Create the hidden directory in the final bundle
+          mkdir -p "$BUNDLE_PIL/.dylibs"
+
+          # 3. Copy files from whichever source architecture folder is available
+          if [ -d "$SOURCE_DYLIBS_ARM" ]; then
+            echo "Copying arm64 dylibs..."
+            cp -R "$SOURCE_DYLIBS_ARM/." "$BUNDLE_PIL/.dylibs/"
+          elif [ -d "$SOURCE_DYLIBS_X86" ]; then
+            echo "Copying x86_64 dylibs..."
+            cp -R "$SOURCE_DYLIBS_X86/." "$BUNDLE_PIL/.dylibs/"
+          else
+            echo "ERROR: Could not find source .dylibs folder!"
+            exit 1
+          fi
+
+          echo "Injection complete. Contents of $BUNDLE_PIL/.dylibs:"
+          ls -la "$BUNDLE_PIL/.dylibs"
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v5.0.0
