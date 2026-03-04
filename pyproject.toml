@@ -127,15 +127,12 @@ show = true
 message = "Preparing environment..."
 
 [tool.flet.macos]
-# This forces the build to look at Flet's patched wheels first
-dependencies = [
-  "pillow",
-]
 source_packages = ["pillow"]
 icon = "beenative_logo_only_2048.png"
 
 [tool.flet.macos.cleanup]
 # This prevents Flet from deleting "non-essential" files in site-packages
+app = false
 packages = false
 
 [tool.flet.ios]

@@ -110,6 +110,8 @@ jobs:
           # 2. Create the hidden directory in the final bundle
           mkdir -p "$BUNDLE_PIL/.dylibs"
 
+          ls -lah "$BUNDLE_PIL"
+
           # 3. Copy files from whichever source architecture folder is available
           if [ -d "$SOURCE_DYLIBS_ARM" ]; then
             echo "Copying arm64 dylibs..."
