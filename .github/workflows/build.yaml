@@ -103,34 +103,8 @@ jobs:
           # Note: flet build creates a 'build' folder in project root
           BUNDLE_PIL="build/macos/BeeNative.app/Contents/Frameworks/serious_python_darwin.framework/Resources/python.bundle/Contents/Resources/site-packages/PIL"
 
-          # serious_python stores temporary site-packages during build here:
-          SOURCE_DYLIBS_ARM="build/site-packages/arm64/PIL/.dylibs"
-          SOURCE_DYLIBS_X86="build/site-packages/x86_64/PIL/.dylibs"
-
           echo "VIEWING BUNDLE_PIL"
           ls -lahR "$BUNDLE_PIL"
-
-      
-      - name: Fix macOS Missing Dylibs
-        if: matrix.name == 'macos'
-        run: |
-          echo "Starting post-build dylib injection from Homebrew..."
-          
-          # 1. Destination inside your built app
-          BUNDLE_PIL="build/macos/BeeNative.app/Contents/Frameworks/serious_python_darwin.framework/Resources/python.bundle/Contents/Resources/site-packages/PIL"
-          mkdir -p "$BUNDLE_PIL/.dylibs"
-
-          # 2. Identify the Homebrew prefix (ARM vs Intel)
-          if [ -d "/opt/homebrew/opt" ]; then BREW_PREFIX="/opt/homebrew"; else BREW_PREFIX="/usr/local"; fi
-
-          # 3. Manually copy the specific libraries Pillow is looking for
-          # These names match exactly what was in your otool output earlier
-          cp "$BREW_PREFIX/opt/libtiff/lib/libtiff.6.dylib" "$BUNDLE_PIL/.dylibs/"
-          cp "$BREW_PREFIX/opt/jpeg/lib/libjpeg.62.dylib" "$BUNDLE_PIL/.dylibs/"
-          cp "$BREW_PREFIX/opt/openjpeg/lib/libopenjp2.7.dylib" "$BUNDLE_PIL/.dylibs/"
-
-          echo "Injection complete. Verifying bundle contents:"
-          ls -la "$BUNDLE_PIL/.dylibs"
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v5.0.0
