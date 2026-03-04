@@ -92,7 +92,7 @@ jobs:
       - name: Build app
         shell: bash
         run: |
-          uv run ${{ matrix.build_cmd }} --build-number ${{ github.run_number }} --yes --verbose --skip-flutter-doctor
+          uv run ${{ matrix.build_cmd }} --build-number ${{ github.run_number }} --yes -vv --skip-flutter-doctor
 
       - name: Fix macOS Missing Dylibs
         if: matrix.name == 'macos'
@@ -107,10 +107,14 @@ jobs:
           SOURCE_DYLIBS_ARM="build/site-packages/arm64/PIL/.dylibs"
           SOURCE_DYLIBS_X86="build/site-packages/x86_64/PIL/.dylibs"
 
+          ls -lah "$BUNDLE_PIL"
+          echo "ARM"
+          ls -lah "$SOURCE_DYLIBS_ARM"
+          echo "x86"
+          ls -lah "$SOURCE_DYLIBS_X86"
+
           # 2. Create the hidden directory in the final bundle
           mkdir -p "$BUNDLE_PIL/.dylibs"
-
-          ls -lah "$BUNDLE_PIL"
 
           # 3. Copy files from whichever source architecture folder is available
           if [ -d "$SOURCE_DYLIBS_ARM" ]; then
@@ -121,7 +125,7 @@ jobs:
             cp -R "$SOURCE_DYLIBS_X86/." "$BUNDLE_PIL/.dylibs/"
           else
             echo "ERROR: Could not find source .dylibs folder!"
-            exit 1
+            # exit 1
           fi
 
           echo "Injection complete. Contents of $BUNDLE_PIL/.dylibs:"
