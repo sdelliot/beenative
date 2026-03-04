@@ -92,7 +92,7 @@ jobs:
       - name: Build app
         shell: bash
         run: |
-          uv run ${{ matrix.build_cmd }} --build-number ${{ github.run_number }} --yes -vv --skip-flutter-doctor --no-cleanup-packages
+          uv run ${{ matrix.build_cmd }} --build-number ${{ github.run_number }} --yes -vv --skip-flutter-doctor
 
       - name: Fix macOS Missing Dylibs
         if: matrix.name == 'macos'
