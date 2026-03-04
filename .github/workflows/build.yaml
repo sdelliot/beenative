@@ -92,7 +92,7 @@ jobs:
       - name: Build app
         shell: bash
         run: |
-          uv run ${{ matrix.build_cmd }} --build-number ${{ github.run_number }} --yes -vv --skip-flutter-doctor
+          uv run ${{ matrix.build_cmd }} --build-number ${{ github.run_number }} --yes -vv --skip-flutter-doctor --no-cleanup-packages
 
       - name: Fix macOS Missing Dylibs
         if: matrix.name == 'macos'
@@ -107,28 +107,29 @@ jobs:
           SOURCE_DYLIBS_ARM="build/site-packages/arm64/PIL/.dylibs"
           SOURCE_DYLIBS_X86="build/site-packages/x86_64/PIL/.dylibs"
 
-          ls -lah "$BUNDLE_PIL"
-          echo "ARM"
-          ls -lah "$SOURCE_DYLIBS_ARM"
-          echo "x86"
-          ls -lah "$SOURCE_DYLIBS_X86"
+          echo "VIEWING BUNDLE_PIL"
+          ls -lahR "$BUNDLE_PIL"
 
-          # 2. Create the hidden directory in the final bundle
+      
+      - name: Fix macOS Missing Dylibs
+        if: matrix.name == 'macos'
+        run: |
+          echo "Starting post-build dylib injection from Homebrew..."
+          
+          # 1. Destination inside your built app
+          BUNDLE_PIL="build/macos/BeeNative.app/Contents/Frameworks/serious_python_darwin.framework/Resources/python.bundle/Contents/Resources/site-packages/PIL"
           mkdir -p "$BUNDLE_PIL/.dylibs"
 
-          # 3. Copy files from whichever source architecture folder is available
-          if [ -d "$SOURCE_DYLIBS_ARM" ]; then
-            echo "Copying arm64 dylibs..."
-            cp -R "$SOURCE_DYLIBS_ARM/." "$BUNDLE_PIL/.dylibs/"
-          elif [ -d "$SOURCE_DYLIBS_X86" ]; then
-            echo "Copying x86_64 dylibs..."
-            cp -R "$SOURCE_DYLIBS_X86/." "$BUNDLE_PIL/.dylibs/"
-          else
-            echo "ERROR: Could not find source .dylibs folder!"
-            # exit 1
-          fi
+          # 2. Identify the Homebrew prefix (ARM vs Intel)
+          if [ -d "/opt/homebrew/opt" ]; then BREW_PREFIX="/opt/homebrew"; else BREW_PREFIX="/usr/local"; fi
 
-          echo "Injection complete. Contents of $BUNDLE_PIL/.dylibs:"
+          # 3. Manually copy the specific libraries Pillow is looking for
+          # These names match exactly what was in your otool output earlier
+          cp "$BREW_PREFIX/opt/libtiff/lib/libtiff.6.dylib" "$BUNDLE_PIL/.dylibs/"
+          cp "$BREW_PREFIX/opt/jpeg/lib/libjpeg.62.dylib" "$BUNDLE_PIL/.dylibs/"
+          cp "$BREW_PREFIX/opt/openjpeg/lib/libopenjp2.7.dylib" "$BUNDLE_PIL/.dylibs/"
+
+          echo "Injection complete. Verifying bundle contents:"
           ls -la "$BUNDLE_PIL/.dylibs"
 
       - name: Upload Artifact
