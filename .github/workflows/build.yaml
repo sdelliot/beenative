@@ -36,10 +36,10 @@ jobs:
             build_cmd: "flet build macos"
             artifact_path: build/macos
 
-          # - name: windows
-          #   runner: windows-latest
-          #   build_cmd: "flet build windows"
-          #   artifact_path: build/windows
+          - name: windows
+            runner: windows-latest
+            build_cmd: "flet build windows"
+            artifact_path: build/windows
 
           # -------- Android --------
           # - name: aab
@@ -72,22 +72,6 @@ jobs:
 
       - name: Install Dependencies
         run: make install
-
-      - name: Install macOS System Dependencies
-        if: runner.os == 'macOS'
-        run: |
-          # Use -q for cleaner logs
-          brew install -q libjpeg libtiff little-cms2 openjpeg webp
-
-          # Note: macos-latest (M1/M2) uses /opt/homebrew. Intel uses /usr/local.
-          if [ -d "/opt/homebrew/opt" ]; then
-            BREW_PREFIX="/opt/homebrew"
-          else
-            BREW_PREFIX="/usr/local"
-          fi
-
-          echo "LDFLAGS=-L$BREW_PREFIX/opt/libjpeg/lib -L$BREW_PREFIX/opt/libtiff/lib" >> $GITHUB_ENV
-          echo "CPPFLAGS=-I$BREW_PREFIX/opt/libjpeg/include -I$BREW_PREFIX/opt/libtiff/include" >> $GITHUB_ENV
 
       - name: Build app
         shell: bash
