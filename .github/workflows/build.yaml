@@ -92,19 +92,7 @@ jobs:
       - name: Build app
         shell: bash
         run: |
-          uv run ${{ matrix.build_cmd }} --build-number ${{ github.run_number }} --yes -vv --skip-flutter-doctor
-
-      - name: Fix macOS Missing Dylibs
-        if: matrix.name == 'macos'
-        run: |
-          echo "Starting post-build dylib injection..."
-
-          # 1. Define Paths
-          # Note: flet build creates a 'build' folder in project root
-          BUNDLE_PIL="build/macos/BeeNative.app/Contents/Frameworks/serious_python_darwin.framework/Resources/python.bundle/Contents/Resources/site-packages/PIL"
-
-          echo "VIEWING BUNDLE_PIL"
-          ls -lahR "$BUNDLE_PIL"
+          uv run ${{ matrix.build_cmd }} --build-number ${{ github.run_number }} --yes --verbose --skip-flutter-doctor
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v5.0.0
@@ -113,3 +101,4 @@ jobs:
           path: ${{ matrix.artifact_path }}
           if-no-files-found: error
           overwrite: false
+          include-hidden-files: true
