@@ -117,8 +117,8 @@ def migrate(message: str = typer.Option(None, "--message", "-m", help="Revision 
     Runs 'autogenerate' if a message is provided, otherwise upgrades to latest.
     """
     # 1. Load Alembic configuration
-    project_root = Path(__file__).resolve().parent.parent
-    ini_path = project_root / "alembic.ini"
+    project_root = Path(__file__).resolve().parent
+    ini_path = project_root / "assets" / "alembic.ini"
 
     if not ini_path.exists():
         typer.secho(f"❌ Could not find alembic.ini at {ini_path}", fg=typer.colors.RED)

@@ -1,22 +1,27 @@
-name: Build Flet App 
+name: Build Flet App
 
-on: 
-  push: 
-  pull_request: 
-  workflow_dispatch: 
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - "v*"
+  pull_request:
+  workflow_dispatch:
 
-env: 
-  UV_PYTHON: 3.12 
-  PYTHONUTF8: 1 
+env:
+  UV_PYTHON: 3.12
+  PYTHONUTF8: 1
 
   # https://docs.flet.dev/reference/environment-variables
-  FLET_CLI_NO_RICH_OUTPUT: 1 
+  FLET_CLI_NO_RICH_OUTPUT: 1
+  USE_SYSTEM_PYTHON: true
 
 jobs:
   build:
     name: Build ${{ matrix.name }}
     runs-on: ${{ matrix.runner }}
-    strategy: 
+    strategy:
       fail-fast: false
       matrix:
         include:
@@ -25,83 +30,59 @@ jobs:
             runner: ubuntu-latest
             build_cmd: "flet build linux"
             artifact_path: build/linux
-            needs_linux_deps: true
 
           - name: macos
             runner: macos-latest
             build_cmd: "flet build macos"
             artifact_path: build/macos
-            needs_linux_deps: false
 
           - name: windows
             runner: windows-latest
             build_cmd: "flet build windows"
             artifact_path: build/windows
-            needs_linux_deps: false
 
           # -------- Android --------
-          - name: aab
-            runner: ubuntu-latest
-            build_cmd: "flet build aab"
-            artifact_path: build/aab
-            needs_linux_deps: true
+          # - name: aab
+          #   runner: ubuntu-latest
+          #   build_cmd: "flet build aab"
+          #   artifact_path: build/aab
 
-          - name: apk
-            runner: ubuntu-latest
-            build_cmd: "flet build apk"
-            artifact_path: build/apk
-            needs_linux_deps: true
+          # - name: apk
+          #   runner: ubuntu-latest
+          #   build_cmd: "flet build apk"
+          #   artifact_path: build/apk
 
           # -------- iOS --------
-          - name: ipa
-            runner: macos-latest
-            build_cmd: "flet build ipa"
-            artifact_path: build/ipa
-            needs_linux_deps: false
+          # - name: ipa
+          #   runner: macos-latest
+          #   build_cmd: "flet build ipa"
+          #   artifact_path: build/ipa
 
-          - name: ios-simulator
-            runner: macos-latest
-            build_cmd: "flet build ios-simulator"
-            artifact_path: build/ios-simulator
-            needs_linux_deps: false
-
-          # -------- Web --------
-          - name: web
-            runner: ubuntu-latest
-            build_cmd: "flet build web"
-            artifact_path: build/web
-            needs_linux_deps: true
+          # - name: ios-simulator
+          #   runner: macos-latest
+          #   build_cmd: "flet build ios-simulator"
+          #   artifact_path: build/ios-simulator
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4 
+        uses: actions/checkout@v4
 
       - name: Setup uv
-        uses: astral-sh/setup-uv@v6 
+        uses: astral-sh/setup-uv@v6
 
-      - name: Install Linux dependencies 
-        if: matrix.needs_linux_deps 
+      - name: Install Dependencies
+        run: make install
+
+      - name: Build app
         shell: bash
         run: |
-            sudo apt update --allow-releaseinfo-change
-            sudo apt-get install -y --no-install-recommends \
-              clang ninja-build libgtk-3-dev libasound2-dev libmpv-dev mpv \
-              libcairo2-dev libffi-dev libjpeg-dev \
-              libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev libgstreamer-plugins-bad1.0-dev \
-              gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly \
-              gstreamer1.0-libav gstreamer1.0-tools gstreamer1.0-x gstreamer1.0-alsa gstreamer1.0-gl gstreamer1.0-gtk3 \
-              gstreamer1.0-qt5 gstreamer1.0-pulseaudio pkg-config libsecret-1-0 libsecret-1-dev
-            sudo apt-get clean
-
-      - name: Build app 
-        shell: bash
-        run: |
-          uv run ${{ matrix.build_cmd }} --build-number ${{ github.run_number }} --yes --verbose
+          uv run ${{ matrix.build_cmd }} --build-number ${{ github.run_number }} --yes --verbose --skip-flutter-doctor
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v5.0.0 
+        uses: actions/upload-artifact@v5.0.0
         with:
           name: ${{ matrix.name }}-build-artifact
-          path: ${{ matrix.artifact_path }} 
-          if-no-files-found: error 
+          path: ${{ matrix.artifact_path }}
+          if-no-files-found: error
           overwrite: false
+          include-hidden-files: true

@@ -28,14 +28,14 @@ dependencies = [
   "alembic",
   "beautifulsoup4>=4.14.3",
   "flet>=0.80.5",
-  "greenlet>=3.3.1",
-  "pillow>=12.1.0",
+  "greenlet>=3.1.1",
+  "pillow>=11.1.0",
   "pydantic~=2.0",
   "pydantic-settings",
   "reportlab>=4.4.9",
   "requests>=2.32.5",
   "segno>=1.6.6",
-  "svglib>=1.6.0",
+  "svglib>=1.5.0",
   "urllib3>=2.6.2",
 ]
 dynamic = ["version"]
@@ -72,7 +72,12 @@ beenative = [
 ]
 
 [tool.ruff]
-exclude = [".venv", "./beenative/_version.py", "./beenative/db/env.py", "testpad.ipynb"]
+exclude = [
+  ".venv",
+  "./beenative/_version.py",
+  "./beenative/db/env.py",
+  "testpad.ipynb"
+]
 line-length = 120
 
 [tool.coverage.run]
@@ -115,16 +120,24 @@ build_number = 1
 path = "beenative"
 module = "main"
 # Keep your window clean until setup is done
-hide_window_on_start = true 
+# hide_window_on_start = false
 
 [tool.flet.app.boot_screen]
 show = true
 message = "Preparing environment..."
 
-[tool.flet.compile]
-app = true
-packages = true
+[tool.flet.app.startup_screen]
+show = true
+message = "Starting up the app…"
 
-[tool.flet.cleanup]
-app = true
-packages = true
+[tool.flet.macos]
+source_packages = ["pillow"]
+
+[tool.flet.macos.cleanup]
+# This prevents Flet from deleting "non-essential" files in site-packages
+app = false
+packages = false
+
+[tool.flet.splash]
+color = "#F4F7F5"
+dark_color = "#121A13"
