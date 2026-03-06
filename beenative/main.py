@@ -683,15 +683,16 @@ async def main(page: ft.Page):
             *[bn_utils.get_image_dimensions(img["thumbnail_url"], target_h) for img in valid_images]
         )
 
-        chip_bg = ft.Colors.BLUE_900 if is_dark else ft.Colors.BLUE_50
-        chip_text_color = ft.Colors.BLUE_200 if is_dark else ft.Colors.BLUE_900
-        chip_border_color = ft.Colors.BLUE_700 if is_dark else ft.Colors.BLUE_200
+        chip_bg = ft.Colors.SECONDARY_CONTAINER
+        chip_text_color = ft.Colors.ON_SECONDARY_CONTAINER
+        chip_border_color = ft.Colors.OUTLINE  # Use the theme's border color
+        selection_color = ft.Colors.PRIMARY    # Use Loblolly Green for the selection border
 
         def toggle_selection(e, card_container, check_icon):
             # Check if we are in "Selection Mode"
             if selection_mode_chip.selected:
                 is_selected = card_container.border is None
-                e.control.border = ft.Border.all(4, chip_border_color) if is_selected else None
+                e.control.border = ft.Border.all(4, selection_color) if is_selected else None
                 check_icon.visible = is_selected
 
                 # Visual feedback: dim the image slightly when selected
@@ -747,6 +748,7 @@ async def main(page: ft.Page):
             # Active styles
             selected_color=chip_bg,
             show_checkmark=False,
+            bgcolor=ft.Colors.SURFACE_CONTAINER_HIGHEST,
             check_color=chip_text_color,
             # Trigger the UI update
             on_select=lambda e: sync_chip_ui() or e.page.update(),
@@ -757,7 +759,7 @@ async def main(page: ft.Page):
         for img, current_w in zip(valid_images, widths):
             # The Checkmark Icon (Hidden by default)
             check_mark = ft.Icon(
-                ft.Icons.CHECK_CIRCLE, color=ft.Colors.BLUE_ACCENT, size=30, visible=False, top=10, right=10
+                ft.Icons.CHECK_CIRCLE, color=ft.Colors.PRIMARY, size=30, visible=False, top=10, right=10
             )
 
             # The Stack allows the icon to sit ON TOP of the image
