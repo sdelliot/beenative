@@ -337,24 +337,33 @@ def get_flet_caption(info, is_dark=True):
     )
 
 
-def get_loading_overlay(message="Processing...", is_dark=True):
-    # Adaptive colors for the shimmer card
-    card_bg = ft.Colors.GREY_900 if is_dark else ft.Colors.WHITE
-    text_color = ft.Colors.GREY_400 if is_dark else ft.Colors.GREY_700
-
+def get_loading_overlay(page: ft.Page, message="Processing..."):
     return ft.Container(
         content=ft.Card(
             content=ft.Container(
                 content=ft.Column(
                     [
-                        ft.ProgressRing(width=40, height=40, stroke_width=4, color=ft.Colors.BLUE_400),
-                        ft.Text(message, size=16, weight=ft.FontWeight.W_500, color=text_color),
+                        ft.ProgressRing(
+                            width=40, height=40, stroke_width=4, color=page.theme.color_scheme.on_primary_container
+                        ),
+                        ft.Text(
+                            message,
+                            size=16,
+                            weight=ft.FontWeight.W_500,
+                            color=page.theme.color_scheme.on_primary_container,
+                        ),
                         # "Shimmer" bars to mimic data loading
                         ft.Container(
-                            height=10, width=150, bgcolor=ft.Colors.with_opacity(0.1, text_color), border_radius=5
+                            height=10,
+                            width=150,
+                            bgcolor=ft.Colors.with_opacity(0.1, page.theme.color_scheme.on_primary_container),
+                            border_radius=5,
                         ),
                         ft.Container(
-                            height=10, width=100, bgcolor=ft.Colors.with_opacity(0.1, text_color), border_radius=5
+                            height=10,
+                            width=100,
+                            bgcolor=ft.Colors.with_opacity(0.1, page.theme.color_scheme.on_primary_container),
+                            border_radius=5,
                         ),
                     ],
                     tight=True,
@@ -362,11 +371,12 @@ def get_loading_overlay(message="Processing...", is_dark=True):
                     horizontal_alignment=ft.CrossAxisAlignment.CENTER,
                 ),
                 padding=30,
+                bgcolor=page.theme.color_scheme.primary_container,
             ),
             elevation=10,
         ),
         alignment=ft.Alignment.CENTER,
-        bgcolor=card_bg,
+        bgcolor=page.theme.card_bgcolor,
     )
 
 
@@ -379,6 +389,107 @@ async def main(page: ft.Page):
     page.title = title
     page.padding = 20
     logger.info("Starting up %s", title)
+
+    light_scheme = ft.ColorScheme(
+        # Core Colors
+        primary="#2D5A27",  # Loblolly Pine Green
+        on_primary="#FFFFFF",
+        primary_container="#D1E8D0",  # Soft Sage Green
+        on_primary_container="#002106",
+        secondary="#6D435A",  # Purple Honey
+        on_secondary="#FFFFFF",
+        secondary_container="#F5D9E9",  # Pale Lavender/Rose
+        on_secondary_container="#260018",
+        tertiary="#B75231",  # Carolina Clay
+        on_tertiary="#FFFFFF",
+        tertiary_container="#FFDBD1",  # Light Clay
+        on_tertiary_container="#3B0900",
+        # Error & Status
+        error="#B3261E",  # Standard Material Error
+        on_error="#FFFFFF",
+        error_container="#F9DEDC",
+        on_error_container="#410E0B",
+        # Surfaces & Backgrounds
+        surface="#FFFFFF",  # Card/White backgrounds
+        surface_dim="#F4F7F5",  # Blue Ridge Mist
+        surface_bright="#FBFDF8",
+        surface_container_lowest="#FFFFFF",
+        surface_container_low="#F0F4F1",
+        surface_container="#F4F7F5",  # Main Background
+        surface_container_high="#EDF1EE",
+        surface_container_highest="#E7EBE8",
+        # Text & Utility
+        on_surface="#2A2A2A",  # Sooty Bark
+        on_surface_variant="#5A5A5A",  # Muted Text
+        outline="#D1D9D3",  # Border Color
+        outline_variant="#BFC9C0",
+        shadow="#000000",  # (Opacity handled by Flet/Flutter)
+        scrim="#000000",
+        # Fixed Roles (Consistent across themes)
+        primary_fixed="#D1E8D0",
+        on_primary_fixed="#002106",
+        secondary_fixed="#F5D9E9",
+        on_secondary_fixed="#260018",
+        tertiary_fixed="#FFDBD1",
+        on_tertiary_fixed="#3B0900",
+    )
+
+    dark_scheme = ft.ColorScheme(
+        # Core Colors
+        primary="#5DB069",  # Bright Leaf
+        on_primary="#003912",
+        primary_container="#14511F",
+        on_primary_container="#B6F3B3",
+        secondary="#D4A5BC",  # Night Bloom
+        on_secondary="#3D152D",
+        secondary_container="#542B43",
+        on_secondary_container="#F5D9E9",
+        tertiary="#E07A5F",  # Softened Clay
+        on_tertiary="#431B11",
+        tertiary_container="#5F3429",
+        on_tertiary_container="#FFDBD1",
+        # Error & Status
+        error="#F2B8B5",
+        on_error="#601410",
+        error_container="#8C1D18",
+        on_error_container="#F9DEDC",
+        # Surfaces & Backgrounds
+        surface="#1E261E",  # Pine Bark
+        surface_dim="#121A13",  # Shadow Moss
+        surface_bright="#343B34",
+        surface_container_lowest="#0C120D",
+        surface_container_low="#1A221B",
+        surface_container="#1E261E",
+        surface_container_high="#283129",
+        surface_container_highest="#333C33",
+        # Text & Utility
+        on_surface="#E0E4E1",  # Piedmont Fog
+        on_surface_variant="#A0AAA2",  # Muted Green-Grey
+        outline="#2D382E",  # Border color
+        outline_variant="#414941",
+        shadow="#000000",
+        scrim="#000000",
+        # Fixed Roles
+        primary_fixed="#D1E8D0",
+        on_primary_fixed="#002106",
+        secondary_fixed="#F5D9E9",
+        on_secondary_fixed="#260018",
+        tertiary_fixed="#FFDBD1",
+        on_tertiary_fixed="#3B0900",
+    )
+
+    light_theme = ft.Theme(
+        color_scheme=light_scheme,
+    )
+
+    # --- Dark Theme Definition ---
+    dark_theme = ft.Theme(
+        color_scheme=dark_scheme,
+    )
+
+    # Apply themes to the page
+    page.theme = light_theme
+    page.dark_theme = dark_theme
 
     # Set initial mode
     page.theme_mode = ft.ThemeMode.DARK
@@ -405,7 +516,6 @@ async def main(page: ft.Page):
             doc_icon,
             theme_icon,
         ],
-        bgcolor=ft.Colors.SURFACE_CONTAINER,
     )
 
     # State keys MUST match your Database Column Names exactly
@@ -1067,8 +1177,7 @@ async def main(page: ft.Page):
         selected_images = gallery_control.get_selected()
 
         # --- 1. SHOW PAGE-LEVEL OVERLAY ---
-        is_dark = page.theme_mode == ft.ThemeMode.DARK
-        pdf_shimmer = get_loading_overlay("Generating High-Res PDF...", is_dark)
+        pdf_shimmer = get_loading_overlay(page, "Generating High-Res PDF...")
         bs.content.content = ft.Container(content=pdf_shimmer, height=400)
         page.update()
 
@@ -1144,7 +1253,7 @@ async def main(page: ft.Page):
                 label=ft.Text(cat),
                 leading=ft.Icon(get_plant_icon(cat)),
                 on_select=handle_click("plant_categories"),
-                selected_color=ft.Colors.GREEN_700,
+                # selected_color=page.theme.highlight_color,
             )
             for cat in ["Trees", "Shrubs", "Vines", "Forbs", "Grasses & Sedges", "Ferns"]
         ],
@@ -1302,7 +1411,6 @@ async def main(page: ft.Page):
                 ),
             ]
         ),
-        bgcolor=ft.Colors.with_opacity(0.9, ft.Colors.PRIMARY),
         alignment=ft.Alignment.CENTER,
         visible=False,
         # opacity=0,
@@ -1397,7 +1505,7 @@ async def main(page: ft.Page):
         is_dark = page.theme_mode == ft.ThemeMode.DARK or (
             page.platform_brightness == ft.Brightness.DARK if page.theme_mode == ft.ThemeMode.SYSTEM else False
         )
-        shimmer_overlay = get_loading_overlay("Gathering Plant Data...", is_dark)
+        shimmer_overlay = get_loading_overlay(page, "Gathering Plant Data...")
 
         # Show the BottomSheet immediately with the shimmer
         bs.content.content = ft.Container(content=shimmer_overlay, height=400)
