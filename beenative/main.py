@@ -1,19 +1,19 @@
-import flet as ft
-import asyncio
-import json
 import os
-from pathlib import Path
+import json
 import math
-from sqlalchemy import inspect
-from db.repository import search_plants
-from models.plant import Plant
-import utils.utils as bn_utils
-import pdf_gen
-from settings import settings
-from db.engine import db_manager
-
+import asyncio
 import logging
 import platform
+from pathlib import Path
+
+import flet as ft
+import pdf_gen
+import utils.utils as bn_utils
+from settings import settings
+from db.engine import db_manager
+from sqlalchemy import inspect
+from models.plant import Plant
+from db.repository import search_plants
 
 
 def get_log_path(app_name):
@@ -845,9 +845,8 @@ async def main(page: ft.Page):
             if e.control.selected:
                 if category not in state[key]:
                     state[key].append(category)
-            else:
-                if category in state[key]:
-                    state[key].remove(category)
+            elif category in state[key]:
+                state[key].remove(category)
 
         # 2. Mutually exclusive logic for Colors (Your existing logic)
         elif key == "flower_colors":
@@ -905,14 +904,13 @@ async def main(page: ft.Page):
             else:
                 text_color = ft.Colors.RED_ACCENT_100
                 bg_color = ft.Colors.with_opacity(0.15, ft.Colors.RED_ACCENT_700)
+        # LIGHT MODE: Richer Darks on Soft Backgrounds
+        elif attr_type == "wildlife":
+            text_color = ft.Colors.GREEN_800  # Darker for contrast on light
+            bg_color = ft.Colors.GREEN_50  # Soft pastel background
         else:
-            # LIGHT MODE: Richer Darks on Soft Backgrounds
-            if attr_type == "wildlife":
-                text_color = ft.Colors.GREEN_800  # Darker for contrast on light
-                bg_color = ft.Colors.GREEN_50  # Soft pastel background
-            else:
-                text_color = ft.Colors.RED_800
-                bg_color = ft.Colors.RED_50
+            text_color = ft.Colors.RED_800
+            bg_color = ft.Colors.RED_50
 
         boarder = ft.Border.all(1, ft.Colors.with_opacity(0.1, text_color)) if not is_dark else None
         chips = []
@@ -1096,7 +1094,7 @@ async def main(page: ft.Page):
 
         # 2. Insert it at the very top of the BottomSheet content
         detail_container.controls.insert(0, export_status)
-        page.update()  #
+        page.update()
 
         try:
             # 3. Generate bytes and save
@@ -1128,7 +1126,7 @@ async def main(page: ft.Page):
 
         gallery_control.selection_mode_chip.selected = False
         gallery_control.sync_chip_ui()
-        page.update()  #
+        page.update()
 
         # 5. Optional: Remove it after a few seconds
         await asyncio.sleep(3)
@@ -1231,7 +1229,7 @@ async def main(page: ft.Page):
 
         # 2. Insert it at the very top of the BottomSheet content
         detail_container.controls.insert(0, status)
-        page.update()  #
+        page.update()
         # 5. Optional: Remove it after a few seconds
         await asyncio.sleep(3)
         detail_container.controls.remove(status)

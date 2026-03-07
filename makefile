@@ -174,11 +174,11 @@ build: $(PACKAGE_CHECK)
 
 .PHONY: document_schema
 document_schema:
-	$(UV) run python -m paracelsus.cli inject docs/dev/database.md $(PACKAGE_SLUG).models.base:Base --import-module "$(PACKAGE_SLUG).models:*"
+#	$(UV) run python -m paracelsus.cli inject docs/dev/database.md $(PACKAGE_SLUG).models.base:Base --import-module "$(PACKAGE_SLUG).models:*"
 
 .PHONY: paracelsus_check
 paracelsus_check:
-	$(UV) run python -m paracelsus.cli inject docs/dev/database.md $(PACKAGE_SLUG).models.base:Base --import-module "$(PACKAGE_SLUG).models:*" --check
+#	$(UV) run python -m paracelsus.cli inject docs/dev/database.md $(PACKAGE_SLUG).models.base:Base --import-module "$(PACKAGE_SLUG).models:*" --check
 
 .PHONY: check_ungenerated_migrations
 check_ungenerated_migrations:

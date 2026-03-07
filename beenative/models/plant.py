@@ -1,4 +1,5 @@
-from sqlalchemy import Column, String, Boolean, Integer, JSON, Float
+from sqlalchemy import JSON, Float, Column, String, Boolean, Integer
+
 from .base import Base, JsonList
 
 

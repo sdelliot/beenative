@@ -1,7 +1,8 @@
-import polars as pl
-import sqlite3
-import json
 import os
+import json
+import sqlite3
+
+import polars as pl
 
 from beenative.settings import settings
 

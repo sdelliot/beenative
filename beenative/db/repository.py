@@ -1,6 +1,6 @@
 import sqlalchemy as sa
-from sqlalchemy.ext.asyncio import AsyncSession
 from models.plant import Plant
+from sqlalchemy.ext.asyncio import AsyncSession
 
 
 async def search_plants(

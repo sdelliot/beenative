@@ -1,24 +1,20 @@
 import io
 import os
-from io import BytesIO
-import requests
 import re
+from io import BytesIO
 from pathlib import Path
-from reportlab.lib import colors
-from reportlab.lib.pagesizes import letter, landscape
-from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Image, Paragraph, Spacer
-from reportlab.lib.styles import getSampleStyleSheet
-from reportlab.lib.units import inch
-
-from models.plant import Plant
-
 from datetime import datetime
 
+import segno
+import requests
+from models.plant import Plant
+from reportlab.lib import colors
 from svglib.svglib import svg2rlg
 from reportlab.graphics import renderPDF
-from reportlab.platypus import Flowable
-
-import segno
+from reportlab.platypus import Image, Table, Spacer, Flowable, Paragraph, TableStyle, SimpleDocTemplate
+from reportlab.lib.units import inch
+from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.lib.pagesizes import letter, landscape
 
 
 class InlineSVG(Flowable):

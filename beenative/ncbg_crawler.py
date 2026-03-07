@@ -1,12 +1,13 @@
 import os
-from typing import Optional, Callable
+import time
+from typing import Callable, Optional
+
+import polars as pl
 import requests
 from bs4 import BeautifulSoup
-import time
-import polars as pl
-from beenative.settings import settings
-import beenative.utils.ingest_utils as bn_utils
 
+import beenative.utils.ingest_utils as bn_utils
+from beenative.settings import settings
 
 # https://fsus.ncbg.unc.edu/main.php?pg=show-taxon.php&family=&plantname=Acetosa+acetosella
 
