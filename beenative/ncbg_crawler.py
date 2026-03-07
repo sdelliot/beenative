@@ -29,7 +29,8 @@ class NCBGParser:
             session.headers.update(settings.requests_headers)
             initial_cookies = {
                 "PHPSESSID": "798a2bc91ea62aa089519d23301e2c4c",
-                "TS01afcdf3": "018e15451906d7edfd21d10f1d816bfaa7afb16f2cffabc030c584843591edf019f650d67cc1f65a86bb904b8d6e924edf3df46b3b",
+                "TS01afcdf3": ("018e15451906d7edfd21d10f1d816bfaa7afb16f2cffabc030c584843591edf019f650"
+                               "d67cc1f65a86bb904b8d6e924edf3df46b3b"),
             }
             session.cookies.update(initial_cookies)
             for name in plant_list:
@@ -128,7 +129,6 @@ class NCBGParser:
             if license_link:
                 img_metadata["license"] = license_link.get_text(strip=True)
 
-            # img_metadata["width"], img_metadata["height"] = beenative.utils.get_img_size(img_metadata["thumbnail_url"])
             image_list.append(bn_utils.normalize_image_data(img_metadata))
 
         # Store images as a list of dicts (Polars can handle this as a List/Struct column)

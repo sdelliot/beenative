@@ -79,6 +79,104 @@ exclude = [
   "testpad.ipynb"
 ]
 line-length = 120
+indent-width = 4
+
+[tool.ruff.lint]
+select = [
+    "E",        # pycodestyle
+    "F",        # pyflakes
+    "W",        # pycodestyle
+    "B",        # flake8-bugbear
+    "I",        # isort
+    # "N",        # pep8-naming
+    # "D",        # pydocstyle
+    # "S",        # flake8-bandit
+    # "BLE",      # flake8-blind-except
+    # "A",        # flake8-builtins
+    "LOG",      # flake8-logging
+    "G",        # flake8-logging-format
+    # "RSE",      # flake8-raise
+    "Q",        # flake8-quotes
+    # "ARG",      # flake8-unused-arguments
+    # "C4",       # flake8-comprehensions
+    "PLC",      # Pylint Convention
+    "PLE",      # Pylint Error
+    # "PLR",      # Pylint Refactor
+    # "PLW",      # Pylint Warning
+    "PERF",     # Perflint
+    # "DOC",      # pydoclint
+    # "RUF",      # Ruff-specific rules
+    # "PTH",      # flake8-use-pathlib
+    "DTZ",      # flake8-datetimez
+]
+
+# We may want to adhere to D205 and D415 in the future.
+ignore = [
+    "D100",     # Missing docstring in public module
+    "D105",     # Missing docstring in magic method
+    "D104",     # Missing docstring in public package
+    "D200",     # One-line docstring should fit on one line with quotes
+    "D202",     # No blank lines allowed after function docstring
+    "D205",     # 1 blank line required between summary line and description
+    "D212",     # Multi-line docstring summary should start at the first line
+    "D415",     # First line should end with a period, question mark, or exclamation point
+    "PLR0904",  # too-many-public-methods
+    "PLR0911",  # too-many-return-statements
+    "PLR0912",  # too-many-branches
+    "PLR0913",  # too-many-arguments
+    "PLR0914",  # too-many-locals
+    "PLR0915",  # too-many-statements
+    "PLR1702",  # too-many-nested-blocks
+    "PLR0917",  # too-many-positional-arguments
+    "N806", # Variable in function should be lowercase
+    # "PLR2004",  # magic-value-comparison
+    # "PLR6301",  # no-self-use
+    # "DOC502",   # docstring-extraneous-exception -- Has lots of false positives currently
+    # "PERF203",  # try-except-in-loop
+    # "PERF401",  # manual-list-comprehension
+]
+preview = false
+# Allow fix for all enabled rules (when `--fix`) is provided.
+fixable = ["ALL"]
+unfixable = []
+
+[tool.ruff.format]
+# Like Black, use double quotes for strings.
+quote-style = "double"
+
+# Like Black, indent with spaces, rather than tabs.
+indent-style = "space"
+
+# Like Black, respect magic trailing commas.
+skip-magic-trailing-comma = false
+
+# Like Black, automatically detect the appropriate line ending.
+line-ending = "auto"
+
+# Enable auto-formatting of code examples in docstrings. Markdown,
+# reStructuredText code/literal blocks and doctests are all supported.
+#
+# This is currently disabled by default, but it is planned for this
+# to be opt-out in the future.
+docstring-code-format = false
+
+# Set the line length limit used when formatting code snippets in
+# docstrings.
+#
+# This only has an effect when the `docstring-code-format` setting is
+# enabled.
+docstring-code-line-length = "dynamic"
+
+[tool.ruff.lint.pycodestyle]
+max-doc-length = 120
+max-line-length = 120
+
+[tool.ruff.lint.isort]
+length-sort = true
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
 
 [tool.coverage.run]
 concurrency = ["thread", "greenlet"]

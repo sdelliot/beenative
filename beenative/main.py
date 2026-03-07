@@ -62,7 +62,7 @@ def setup_production_logging(app_name="com.beenative.app"):
 current_log_file = setup_production_logging()
 logger = logging.getLogger("BeeNative")
 
-logger.info(f"Session Started. Logs being written to: {current_log_file}")
+logger.info("Session Started. Logs being written to: %s", current_log_file)
 
 
 def get_markdown_stylesheet(page: ft.Page):
@@ -231,14 +231,14 @@ RESISTANCE_MAP = {
     "Pollution": ft.Icons.FACTORY,  # Or ft.Icons.OIL_BARREL
     "Urban Conditions": ft.Icons.LOCATION_CITY,
     "Heat": ft.CupertinoIcons.THERMOMETER_SUN,  # Or maybe ft.Icons.WB_SUNNY
-    "Humidity": ft.Icons.DEW_POINT,  # Maybe ft.CupertinoIcons.CLOUD_FOG or ft.CupertinoIcons.SUN_HAZE or maybe ft.Icons.DEW_POINT or ft.Icons.FOGGY
+    "Humidity": ft.Icons.DEW_POINT,  # Maybe ft.CupertinoIcons.CLOUD_FOG or ft.CupertinoIcons.SUN_HAZE or ft.Icons.FOGGY
     "Wind": ft.CupertinoIcons.WIND,
     "Fire": ft.CupertinoIcons.FLAME_FILL,  # or ft.Icons.LOCAL_FIRE_DEPARTMENT
     "Erosion": ft.Icons.LANDSLIDE,
     "Black Walnut": ft.Icons.DO_NOT_DISTURB_ON,
     "Foot Traffic": ft.Icons.DO_NOT_STEP,
     "Compaction": ft.Icons.COMPRESS,
-    "Heavy Shade": ft.Icons.ROLLER_SHADES_CLOSED,  # Or ft.Icons.BEDTIME or ft.CupertinoIcons.CLOUD or ft.CupertinoIcons.CLOUD_SUN_FILL
+    "Heavy Shade": ft.Icons.ROLLER_SHADES_CLOSED,  # Or Icons: BEDTIME, CupertinoIcons: CLOUD, CLOUD_SUN_FILL
     "Diseases": ft.Icons.CORONAVIRUS,
     "Insect Pests": ft.CupertinoIcons.ANT,
     "Storm Damage": ft.Icons.THUNDERSTORM,  # Or cupertino HURRICANE or TORNADO
@@ -644,14 +644,13 @@ async def main(page: ft.Page):
 
         gallery_items = []
         # 3. Zip the results back together to build the UI
-        for img, current_w in zip(valid_images, widths):
+        for img, current_w in zip(valid_images, widths, strict=True):
             # The Checkmark Icon (Hidden by default)
             check_mark = ft.Icon(
                 ft.Icons.CHECK_CIRCLE, color=ft.Colors.BLUE_ACCENT, size=30, visible=False, top=10, right=10
             )
 
             # The Stack allows the icon to sit ON TOP of the image
-            logger.debug(f"Line 503: {img}")
             img_stack = ft.Stack(
                 [
                     ft.Image(
@@ -1074,9 +1073,9 @@ async def main(page: ft.Page):
         if not selected_images:
             logger.debug("No specific images selected; exporting text only or all images.")
         else:
-            logger.debug(f"User wants to include {len(selected_images)} images in the PDF.")
+            logger.debug("User wants to include %s images in the PDF.", len(selected_images))
             for img in selected_images:
-                logger.debug(f"Including: {img.get('thumbnail_url')}")
+                logger.debug("Including: %s", img.get("thumbnail_url"))
 
         # 1. Create a local notification control
         export_status = ft.Container(

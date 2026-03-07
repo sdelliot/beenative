@@ -127,7 +127,10 @@ class BeeNativeAPI:
 
         console.print(f"[green]Processed {len(results)} entries into [magenta]{output_ncsu}")
 
-        ncbg_print_str = f"[green]🔍 Analyzing Flora of the Southeastern United States (NC Botanical Garden) for {len(plant_list)} unique scientific names...."
+        ncbg_print_str = (
+            "[green]🔍 Analyzing 'Flora of the Southeastern United States' (NC Botanical Garden) for "
+            f"{len(plant_list)} unique scientific names..."
+        )
         console.print(ncbg_print_str)
         with Progress(
             SpinnerColumn(),
@@ -240,7 +243,8 @@ class BeeNativeAPI:
                     raise ValueError(f"Unsupported input format: {input_ncbg_file.suffix}")
             else:
                 console.print(
-                    "[warning]⚠️ Must have input file to process Flora of the Southeastern United States (NC Botanical Garden) data!"
+                    "[warning]⚠️ Must have input file to process 'Flora of the Southeastern United States' "
+                    "(NC Botanical Garden) data!"
                 )
 
             task_ncbg_desc = "[cyan]🌳 Processing Flora of the Southeastern United States (NC Botanical Garden) data: "

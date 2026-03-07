@@ -154,11 +154,7 @@ def sort_bloom_dict(data):
         return []
 
     # Sort based on our master MONTH_ORDER
-    sorted_months = []
-    for m_name in MONTH_ORDER:
-        if m_name in data:
-            sorted_months.append((m_name, data[m_name]))
-    return sorted_months
+    return [(m_name, data[m_name]) for m_name in MONTH_ORDER if m_name in data]
 
 
 def get_intensity_color(base_color, intensity):
@@ -483,7 +479,7 @@ def generate_plant_pdf(plant: Plant, selected_images=None):
     def draw_footer(canvas, doc):
         canvas.saveState()
         # Footer text
-        footer_text = f"BeeNative Plant Data Sheet | Generated: {datetime.now().strftime('%Y-%m-%d')}"
+        footer_text = f"BeeNative Plant Data Sheet | Generated: {datetime.now().astimezone().strftime('%Y-%m-%d')}"
         canvas.setFont("Helvetica", 8)
         canvas.setFillColor(colors.grey)
 

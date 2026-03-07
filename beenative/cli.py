@@ -12,6 +12,8 @@ from settings import settings
 from utils.ingest import BeeNativeDB
 from alembic.config import Config
 
+from . import __version__
+
 app = typer.Typer()
 
 
@@ -29,8 +31,6 @@ def syncify(f: Callable[..., Any]) -> Callable[..., Any]:
 
 @app.command(help=f"Display the current installed version of {settings.project_name}.")
 def version() -> None:
-    from . import __version__
-
     typer.echo(f"{settings.project_name} - {__version__}")
 
 
@@ -55,7 +55,7 @@ def initialize(
         api.initialize(vascular_source, delay, get_maps, vascular_output_file, ncsu_output_file, ncbg_output_file)
     except Exception as e:
         typer.secho(f"❌ Error: {e}", fg=typer.colors.RED, err=True)
-        raise typer.Exit(code=1)
+        raise typer.Exit(code=1) from e
 
 
 @app.command()
@@ -106,7 +106,7 @@ def prep_db(
         bdb.save_dataframe(df)
     except Exception as e:
         typer.secho(f"❌ Error: {e}", fg=typer.colors.RED, err=True)
-        raise typer.Exit(code=1)
+        raise typer.Exit(code=1) from e
 
 
 @app.command()
