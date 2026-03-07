@@ -1,12 +1,13 @@
-import flet as ft
 import json
-from urllib.parse import urljoin
-from bs4 import NavigableString, BeautifulSoup
-import requests
-from io import BytesIO
-from PIL import Image
-import asyncio
 import pprint
+import asyncio
+from io import BytesIO
+from urllib.parse import urljoin
+
+import flet as ft
+import requests
+from bs4 import BeautifulSoup, NavigableString
+from PIL import Image
 
 
 def format_value(val):

@@ -1,9 +1,9 @@
 import json
-import requests
+from typing import Any, Callable, Optional
 from pathlib import Path
-from typing import Any, Optional, Callable
 
 import polars as pl
+import requests
 from settings import settings
 
 

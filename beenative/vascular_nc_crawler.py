@@ -1,10 +1,12 @@
 import os
 import time
+from typing import Callable, Optional
+from urllib.parse import urljoin, urlparse
+
+import polars as pl
 import requests
 from bs4 import BeautifulSoup
-from typing import Callable, Optional
-import polars as pl
-from urllib.parse import urljoin, urlparse
+
 from beenative.settings import settings
 
 

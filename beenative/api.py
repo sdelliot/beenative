@@ -1,22 +1,21 @@
 import os
 import re
 import json
+from pathlib import Path
+from functools import reduce
 from collections import Counter
 
 import polars as pl
-from pathlib import Path
-from functools import reduce
-from rich.progress import Progress, TimeRemainingColumn, SpinnerColumn, TextColumn, BarColumn, TaskProgressColumn
-from rich.console import Console
 from rich.panel import Panel
 from rich.table import Column
+from rich.console import Console
+from rich.progress import Progress, BarColumn, TextColumn, SpinnerColumn, TaskProgressColumn, TimeRemainingColumn
 
 import beenative.utils.ingest_utils as bn_utils
-
 from beenative import vascular_nc_crawler, plant_toolbox_crawler
-from beenative.prairie_moon_crawler import PrairieMoonJSONParser
-from beenative.ncbg_crawler import NCBGParser
 from beenative.settings import settings
+from beenative.ncbg_crawler import NCBGParser
+from beenative.prairie_moon_crawler import PrairieMoonJSONParser
 
 
 class BeeNativeAPI:

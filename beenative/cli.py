@@ -1,17 +1,16 @@
 import asyncio
-from collections.abc import Callable
-from functools import wraps
 from typing import Any
-import polars as pl
-import typer
-
 from pathlib import Path
-from alembic.config import Config
+from functools import wraps
+from collections.abc import Callable
+
+import typer
+import polars as pl
+from api import BeeNativeAPI
 from alembic import command
 from settings import settings
-
-from api import BeeNativeAPI
 from utils.ingest import BeeNativeDB
+from alembic.config import Config
 
 app = typer.Typer()
 

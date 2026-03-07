@@ -1,7 +1,7 @@
-import polars as pl
-from rich.console import Console
 import re
 
+import polars as pl
+from rich.console import Console
 
 LICENSE_DB = {
     "CC-BY-NC-SA": ("CC BY-NC-SA 4.0", "https://creativecommons.org/licenses/by-nc-sa/4.0/"),
