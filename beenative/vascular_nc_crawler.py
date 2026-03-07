@@ -22,10 +22,13 @@ def get_native_plant_ids(file_path: str):
     rows = soup.find_all("tr")
 
     ## Colors
-    #  - #ffbb99 (Exotic): Frequently used for non-native, naturalized, or exotic species such as Epipactis helleborine, Zea mays (Corn), and Hedera helix (English Ivy).
-    #  - #ffe699 (Uncertain): Often associated with varieties or specific taxonomic statuses, such as Pycnanthemum verticillatum var. verticillatum or Malus glaucescens.
+    #  - #ffbb99 (Exotic): Frequently used for non-native, naturalized, or exotic species such as
+    #    Epipactis helleborine, Zea mays (Corn), and Hedera helix (English Ivy).
+    #  - #ffe699 (Uncertain): Often associated with varieties or specific taxonomic statuses, such as
+    #    Pycnanthemum verticillatum var. verticillatum or Malus glaucescens.
     #  - #ffff99 (Not Valid): Used for specific entries like Hedera hibernica.
-    #  - #eeccff (Not in NC): Seen in rows for specific conservation or taxonomic notes, such as for certain Hymenocallis entries.
+    #  - #eeccff (Not in NC): Seen in rows for specific conservation or taxonomic notes, such as
+    #    for certain Hymenocallis entries.
     #  - #c6d9ec (Hybrid): Used for hybrid species, such as Populus x jackii.
     non_native_colors = {"#ffbb99", "#eeccff", "#ffe699", "#ffff99"}
 
