@@ -92,10 +92,10 @@ select = [
     # "D",        # pydocstyle
     # "S",        # flake8-bandit
     # "BLE",      # flake8-blind-except
-    # "A",        # flake8-builtins
+    "A",        # flake8-builtins
     "LOG",      # flake8-logging
     "G",        # flake8-logging-format
-    # "RSE",      # flake8-raise
+    "RSE",      # flake8-raise
     "Q",        # flake8-quotes
     # "ARG",      # flake8-unused-arguments
     # "C4",       # flake8-comprehensions
@@ -131,9 +131,6 @@ ignore = [
     "N806", # Variable in function should be lowercase
     # "PLR2004",  # magic-value-comparison
     # "PLR6301",  # no-self-use
-    # "DOC502",   # docstring-extraneous-exception -- Has lots of false positives currently
-    # "PERF203",  # try-except-in-loop
-    # "PERF401",  # manual-list-comprehension
 ]
 preview = false
 # Allow fix for all enabled rules (when `--fix`) is provided.

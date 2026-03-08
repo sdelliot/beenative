@@ -81,7 +81,7 @@ def process(
 
 @app.command()
 def prep_db(
-    input: str = typer.Option("beenative/merged.parquet", "--input", "-i"),
+    input_file: str = typer.Option("beenative/merged.parquet", "--input", "-i"),
 ):
     """
     Parses downloaded HTML into a structured Polars DataFrame.
@@ -89,7 +89,7 @@ def prep_db(
     """
     api = BeeNativeAPI()
     try:
-        df = pl.read_parquet(input)
+        df = pl.read_parquet(input_file)
         df = api.deduplicate_plants(df)
         df = api.prepare_for_sqlite(df)
         df = api.remove_non_nc_plants(df)
