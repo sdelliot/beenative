@@ -6,10 +6,10 @@ Create Date: 2026-02-12 01:18:29.328849
 
 """
 
-from alembic import op
 import sqlalchemy as sa
-import beenative
+from alembic import op
 
+import beenative
 
 # revision identifiers, used by Alembic.
 revision = "1789d7838be8"

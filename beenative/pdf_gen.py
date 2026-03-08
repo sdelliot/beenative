@@ -1,24 +1,20 @@
 import io
 import os
-from io import BytesIO
-import requests
 import re
+from io import BytesIO
 from pathlib import Path
-from reportlab.lib import colors
-from reportlab.lib.pagesizes import letter, landscape
-from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Image, Paragraph, Spacer
-from reportlab.lib.styles import getSampleStyleSheet
-from reportlab.lib.units import inch
-
-from models.plant import Plant
-
 from datetime import datetime
 
+import segno
+import requests
+from models.plant import Plant
+from reportlab.lib import colors
 from svglib.svglib import svg2rlg
 from reportlab.graphics import renderPDF
-from reportlab.platypus import Flowable
-
-import segno
+from reportlab.platypus import Image, Table, Spacer, Flowable, Paragraph, TableStyle, SimpleDocTemplate
+from reportlab.lib.units import inch
+from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.lib.pagesizes import letter, landscape
 
 
 class InlineSVG(Flowable):
@@ -158,11 +154,7 @@ def sort_bloom_dict(data):
         return []
 
     # Sort based on our master MONTH_ORDER
-    sorted_months = []
-    for m_name in MONTH_ORDER:
-        if m_name in data:
-            sorted_months.append((m_name, data[m_name]))
-    return sorted_months
+    return [(m_name, data[m_name]) for m_name in MONTH_ORDER if m_name in data]
 
 
 def get_intensity_color(base_color, intensity):
@@ -487,7 +479,7 @@ def generate_plant_pdf(plant: Plant, selected_images=None):
     def draw_footer(canvas, doc):
         canvas.saveState()
         # Footer text
-        footer_text = f"BeeNative Plant Data Sheet | Generated: {datetime.now().strftime('%Y-%m-%d')}"
+        footer_text = f"BeeNative Plant Data Sheet | Generated: {datetime.now().astimezone().strftime('%Y-%m-%d')}"
         canvas.setFont("Helvetica", 8)
         canvas.setFillColor(colors.grey)
 

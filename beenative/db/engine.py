@@ -1,10 +1,11 @@
 # beenative/db/engine.py
 import shutil
 from pathlib import Path
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
-from alembic.config import Config
+
 from alembic import command
 from settings import settings
+from alembic.config import Config
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 
 class DatabaseManager:

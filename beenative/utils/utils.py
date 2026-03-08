@@ -1,12 +1,13 @@
-import flet as ft
 import json
-from urllib.parse import urljoin
-from bs4 import NavigableString, BeautifulSoup
-import requests
-from io import BytesIO
-from PIL import Image
-import asyncio
 import pprint
+import asyncio
+from io import BytesIO
+from urllib.parse import urljoin
+
+import flet as ft
+import requests
+from bs4 import BeautifulSoup, NavigableString
+from PIL import Image
 
 
 def format_value(val):
@@ -316,7 +317,7 @@ def _parse_html_to_flet(element, base_url=""):
         return container
 
 
-# ____________________________________________________________________________________________________________________________________
+# _______________________________________________________________________________
 # Parser function for html tables
 
 
@@ -343,9 +344,9 @@ def _html_table_to_flet(element, container):
 
 
 def _parse_inline_styles(style_string):
-    # ___________________________________________________________________________________________________________________________________
+    # ____________________________________________________________________________
     # Associate html inline styles to the corresponding flet style properties
-    # ____________________________________________________________________________________________________________________________________
+    # ____________________________________________________________________________
     html_to_flet_style_mapping = {
         "color": "color",
         "background-color": "bgcolor",

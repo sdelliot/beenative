@@ -1,17 +1,18 @@
 import asyncio
-from collections.abc import Callable
-from functools import wraps
 from typing import Any
-import polars as pl
-import typer
-
 from pathlib import Path
-from alembic.config import Config
+from functools import wraps
+from collections.abc import Callable
+
+import typer
+import polars as pl
+from api import BeeNativeAPI
 from alembic import command
 from settings import settings
-
-from api import BeeNativeAPI
 from utils.ingest import BeeNativeDB
+from alembic.config import Config
+
+from . import __version__
 
 app = typer.Typer()
 
@@ -30,8 +31,6 @@ def syncify(f: Callable[..., Any]) -> Callable[..., Any]:
 
 @app.command(help=f"Display the current installed version of {settings.project_name}.")
 def version() -> None:
-    from . import __version__
-
     typer.echo(f"{settings.project_name} - {__version__}")
 
 
@@ -56,7 +55,7 @@ def initialize(
         api.initialize(vascular_source, delay, get_maps, vascular_output_file, ncsu_output_file, ncbg_output_file)
     except Exception as e:
         typer.secho(f"❌ Error: {e}", fg=typer.colors.RED, err=True)
-        raise typer.Exit(code=1)
+        raise typer.Exit(code=1) from e
 
 
 @app.command()
@@ -82,7 +81,7 @@ def process(
 
 @app.command()
 def prep_db(
-    input: str = typer.Option("beenative/merged.parquet", "--input", "-i"),
+    input_file: str = typer.Option("beenative/merged.parquet", "--input", "-i"),
 ):
     """
     Parses downloaded HTML into a structured Polars DataFrame.
@@ -90,7 +89,7 @@ def prep_db(
     """
     api = BeeNativeAPI()
     try:
-        df = pl.read_parquet(input)
+        df = pl.read_parquet(input_file)
         df = api.deduplicate_plants(df)
         df = api.prepare_for_sqlite(df)
         df = api.remove_non_nc_plants(df)
@@ -107,7 +106,7 @@ def prep_db(
         bdb.save_dataframe(df)
     except Exception as e:
         typer.secho(f"❌ Error: {e}", fg=typer.colors.RED, err=True)
-        raise typer.Exit(code=1)
+        raise typer.Exit(code=1) from e
 
 
 @app.command()

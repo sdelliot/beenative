@@ -1,22 +1,21 @@
 import os
 import re
 import json
+from pathlib import Path
+from functools import reduce
 from collections import Counter
 
 import polars as pl
-from pathlib import Path
-from functools import reduce
-from rich.progress import Progress, TimeRemainingColumn, SpinnerColumn, TextColumn, BarColumn, TaskProgressColumn
-from rich.console import Console
 from rich.panel import Panel
 from rich.table import Column
+from rich.console import Console
+from rich.progress import Progress, BarColumn, TextColumn, SpinnerColumn, TaskProgressColumn, TimeRemainingColumn
 
 import beenative.utils.ingest_utils as bn_utils
-
 from beenative import vascular_nc_crawler, plant_toolbox_crawler
-from beenative.prairie_moon_crawler import PrairieMoonJSONParser
-from beenative.ncbg_crawler import NCBGParser
 from beenative.settings import settings
+from beenative.ncbg_crawler import NCBGParser
+from beenative.prairie_moon_crawler import PrairieMoonJSONParser
 
 
 class BeeNativeAPI:
@@ -128,7 +127,10 @@ class BeeNativeAPI:
 
         console.print(f"[green]Processed {len(results)} entries into [magenta]{output_ncsu}")
 
-        ncbg_print_str = f"[green]🔍 Analyzing Flora of the Southeastern United States (NC Botanical Garden) for {len(plant_list)} unique scientific names...."
+        ncbg_print_str = (
+            "[green]🔍 Analyzing 'Flora of the Southeastern United States' (NC Botanical Garden) for "
+            f"{len(plant_list)} unique scientific names..."
+        )
         console.print(ncbg_print_str)
         with Progress(
             SpinnerColumn(),
@@ -241,7 +243,8 @@ class BeeNativeAPI:
                     raise ValueError(f"Unsupported input format: {input_ncbg_file.suffix}")
             else:
                 console.print(
-                    "[warning]⚠️ Must have input file to process Flora of the Southeastern United States (NC Botanical Garden) data!"
+                    "[warning]⚠️ Must have input file to process 'Flora of the Southeastern United States' "
+                    "(NC Botanical Garden) data!"
                 )
 
             task_ncbg_desc = "[cyan]🌳 Processing Flora of the Southeastern United States (NC Botanical Garden) data: "

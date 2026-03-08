@@ -1,7 +1,7 @@
-import polars as pl
-from rich.console import Console
 import re
 
+import polars as pl
+from rich.console import Console
 
 LICENSE_DB = {
     "CC-BY-NC-SA": ("CC BY-NC-SA 4.0", "https://creativecommons.org/licenses/by-nc-sa/4.0/"),
@@ -104,17 +104,14 @@ def normalize_names(df):
 
 def sanitize_column_names(df: pl.DataFrame) -> pl.DataFrame:
     """Converts all column names to lower_snake_case and removes special chars."""
-    new_names = []
-    for col in df.columns:
-        # 1. Lowercase
-        name = col.lower()
-        # 2. Replace spaces, slashes, parens, and hyphens with underscores
-        name = re.sub(r"[^a-z0-9_]", "_", name)
-        # 3. Collapse multiple underscores into one and trim
-        name = re.sub(r"_+", "_", name).strip("_")
-        new_names.append(name)
 
-    return df.rename(dict(zip(df.columns, new_names)))
+    def clean_name(name: str) -> str:
+        # 1. Lowercase and replace any non-alphanumeric block with a single underscore
+        name = re.sub(r"[^a-z0-9]+", "_", name.lower())
+        # 2. Strip leading/trailing underscores
+        return name.strip("_")
+
+    return df.map_columns(clean_name)
 
 
 def check_merge_quality(df):

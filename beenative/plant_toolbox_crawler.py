@@ -1,14 +1,15 @@
 import os
 import re
-from urllib.parse import urljoin
+import time
+from typing import Callable, Optional
+from urllib.parse import urljoin, urlparse, urlunparse
+
+import polars as pl
 import requests
 from bs4 import BeautifulSoup
-from typing import Optional, Callable
-import time
-import polars as pl
-from beenative.settings import settings
+
 import beenative.utils.ingest_utils as bn_utils
-from urllib.parse import urlparse, urlunparse
+from beenative.settings import settings
 
 
 def get_all_plants(plant_list, delay, progress_callback: Optional[Callable] = None):

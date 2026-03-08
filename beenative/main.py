@@ -1,19 +1,19 @@
-import flet as ft
-import asyncio
-import json
 import os
-from pathlib import Path
+import json
 import math
-from sqlalchemy import inspect
-from db.repository import search_plants
-from models.plant import Plant
-import utils.utils as bn_utils
-import pdf_gen
-from settings import settings
-from db.engine import db_manager
-
+import asyncio
 import logging
 import platform
+from pathlib import Path
+
+import flet as ft
+import pdf_gen
+import utils.utils as bn_utils
+from settings import settings
+from db.engine import db_manager
+from sqlalchemy import inspect
+from models.plant import Plant
+from db.repository import search_plants
 
 
 def get_log_path(app_name):
@@ -62,7 +62,7 @@ def setup_production_logging(app_name="com.beenative.app"):
 current_log_file = setup_production_logging()
 logger = logging.getLogger("BeeNative")
 
-logger.info(f"Session Started. Logs being written to: {current_log_file}")
+logger.info("Session Started. Logs being written to: %s", current_log_file)
 
 
 def get_markdown_stylesheet(page: ft.Page):
@@ -231,14 +231,14 @@ RESISTANCE_MAP = {
     "Pollution": ft.Icons.FACTORY,  # Or ft.Icons.OIL_BARREL
     "Urban Conditions": ft.Icons.LOCATION_CITY,
     "Heat": ft.CupertinoIcons.THERMOMETER_SUN,  # Or maybe ft.Icons.WB_SUNNY
-    "Humidity": ft.Icons.DEW_POINT,  # Maybe ft.CupertinoIcons.CLOUD_FOG or ft.CupertinoIcons.SUN_HAZE or maybe ft.Icons.DEW_POINT or ft.Icons.FOGGY
+    "Humidity": ft.Icons.DEW_POINT,  # Maybe ft.CupertinoIcons.CLOUD_FOG or ft.CupertinoIcons.SUN_HAZE or ft.Icons.FOGGY
     "Wind": ft.CupertinoIcons.WIND,
     "Fire": ft.CupertinoIcons.FLAME_FILL,  # or ft.Icons.LOCAL_FIRE_DEPARTMENT
     "Erosion": ft.Icons.LANDSLIDE,
     "Black Walnut": ft.Icons.DO_NOT_DISTURB_ON,
     "Foot Traffic": ft.Icons.DO_NOT_STEP,
     "Compaction": ft.Icons.COMPRESS,
-    "Heavy Shade": ft.Icons.ROLLER_SHADES_CLOSED,  # Or ft.Icons.BEDTIME or ft.CupertinoIcons.CLOUD or ft.CupertinoIcons.CLOUD_SUN_FILL
+    "Heavy Shade": ft.Icons.ROLLER_SHADES_CLOSED,  # Or Icons: BEDTIME, CupertinoIcons: CLOUD, CLOUD_SUN_FILL
     "Diseases": ft.Icons.CORONAVIRUS,
     "Insect Pests": ft.CupertinoIcons.ANT,
     "Storm Damage": ft.Icons.THUNDERSTORM,  # Or cupertino HURRICANE or TORNADO
@@ -644,14 +644,13 @@ async def main(page: ft.Page):
 
         gallery_items = []
         # 3. Zip the results back together to build the UI
-        for img, current_w in zip(valid_images, widths):
+        for img, current_w in zip(valid_images, widths, strict=True):
             # The Checkmark Icon (Hidden by default)
             check_mark = ft.Icon(
                 ft.Icons.CHECK_CIRCLE, color=ft.Colors.BLUE_ACCENT, size=30, visible=False, top=10, right=10
             )
 
             # The Stack allows the icon to sit ON TOP of the image
-            logger.debug(f"Line 503: {img}")
             img_stack = ft.Stack(
                 [
                     ft.Image(
@@ -845,9 +844,8 @@ async def main(page: ft.Page):
             if e.control.selected:
                 if category not in state[key]:
                     state[key].append(category)
-            else:
-                if category in state[key]:
-                    state[key].remove(category)
+            elif category in state[key]:
+                state[key].remove(category)
 
         # 2. Mutually exclusive logic for Colors (Your existing logic)
         elif key == "flower_colors":
@@ -905,14 +903,13 @@ async def main(page: ft.Page):
             else:
                 text_color = ft.Colors.RED_ACCENT_100
                 bg_color = ft.Colors.with_opacity(0.15, ft.Colors.RED_ACCENT_700)
+        # LIGHT MODE: Richer Darks on Soft Backgrounds
+        elif attr_type == "wildlife":
+            text_color = ft.Colors.GREEN_800  # Darker for contrast on light
+            bg_color = ft.Colors.GREEN_50  # Soft pastel background
         else:
-            # LIGHT MODE: Richer Darks on Soft Backgrounds
-            if attr_type == "wildlife":
-                text_color = ft.Colors.GREEN_800  # Darker for contrast on light
-                bg_color = ft.Colors.GREEN_50  # Soft pastel background
-            else:
-                text_color = ft.Colors.RED_800
-                bg_color = ft.Colors.RED_50
+            text_color = ft.Colors.RED_800
+            bg_color = ft.Colors.RED_50
 
         boarder = ft.Border.all(1, ft.Colors.with_opacity(0.1, text_color)) if not is_dark else None
         chips = []
@@ -1076,9 +1073,9 @@ async def main(page: ft.Page):
         if not selected_images:
             logger.debug("No specific images selected; exporting text only or all images.")
         else:
-            logger.debug(f"User wants to include {len(selected_images)} images in the PDF.")
+            logger.debug("User wants to include %s images in the PDF.", len(selected_images))
             for img in selected_images:
-                logger.debug(f"Including: {img.get('thumbnail_url')}")
+                logger.debug("Including: %s", img.get("thumbnail_url"))
 
         # 1. Create a local notification control
         export_status = ft.Container(
@@ -1096,7 +1093,7 @@ async def main(page: ft.Page):
 
         # 2. Insert it at the very top of the BottomSheet content
         detail_container.controls.insert(0, export_status)
-        page.update()  #
+        page.update()
 
         try:
             # 3. Generate bytes and save
@@ -1128,7 +1125,7 @@ async def main(page: ft.Page):
 
         gallery_control.selection_mode_chip.selected = False
         gallery_control.sync_chip_ui()
-        page.update()  #
+        page.update()
 
         # 5. Optional: Remove it after a few seconds
         await asyncio.sleep(3)
@@ -1231,7 +1228,7 @@ async def main(page: ft.Page):
 
         # 2. Insert it at the very top of the BottomSheet content
         detail_container.controls.insert(0, status)
-        page.update()  #
+        page.update()
         # 5. Optional: Remove it after a few seconds
         await asyncio.sleep(3)
         detail_container.controls.remove(status)
