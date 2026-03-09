@@ -106,7 +106,7 @@ select = [
   "PERF",  # Perflint
   # "DOC",      # pydoclint
   # "RUF",      # Ruff-specific rules
-  # "PTH",      # flake8-use-pathlib
+  "PTH",      # flake8-use-pathlib
   "DTZ",  # flake8-datetimez
 ]
 # We may want to adhere to D205 and D415 in the future.

@@ -21,7 +21,7 @@ def get_log_path(app_name):
     home = Path.home()
     if system == "Darwin":  # iOS or macOS
         # On iOS, 'HOME' points to the App's Sandbox
-        if "Library" in os.listdir(home):  # macOS
+        if (home / "Library").is_dir():  # macOS
             log_dir = home / "Library/Logs" / app_name
         else:  # iOS Sandbox
             # Documents is the only place we can reliably write/read on iOS

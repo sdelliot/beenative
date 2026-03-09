@@ -1,4 +1,3 @@
-import os
 import re
 import json
 from pathlib import Path
@@ -31,8 +30,8 @@ class BeeNativeAPI:
 
         In the future, this could end up using a database backend rather than static files.
         """
-        if not os.path.exists(settings.crawl_dir):
-            os.makedirs(settings.crawl_dir)
+        if not Path(settings.crawl_dir).exists():
+            Path(settings.crawl_dir).mkdir(parents=True)
 
         console = Console()
         # 1. NC Vascular Plant Crawler

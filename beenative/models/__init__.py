@@ -1,5 +1,10 @@
-import glob
-from os.path import join, isfile, dirname, basename
+from pathlib import Path
 
-modules = glob.glob(join(dirname(__file__), "*.py"))
-__all__ = [basename(f)[:-3] for f in modules if isfile(f) and not f.endswith("__init__.py")]
+# Use .parent to get the directory of the current file
+current_dir = Path(__file__).parent
+
+# Use .glob() and filter using Path properties
+__all__ = [
+    f.stem for f in current_dir.glob("*.py")
+    if f.is_file() and f.name != "__init__.py"
+]

@@ -23,7 +23,7 @@ class InlineSVG(Flowable):
         if hasattr(source, "read"):
             svg_text = source.read().decode("utf-8")
         else:
-            with open(source, "r") as f:
+            with source.open("r") as f:
                 svg_text = f.read()
 
         # Color normalization for ReportLab compatibility
@@ -82,7 +82,7 @@ class QRWithLogo(Flowable):
     def __init__(self, qr_stream, logo_path, size=1.0 * inch, logo_color="#1B5E20"):
         Flowable.__init__(self)
         self.qr = InlineSVG(qr_stream, width=size, color="#000000")
-        self.logo_path = logo_path
+        self.logo_path = Path(logo_path)
         self.logo_color = logo_color
         self.width = self.qr.width
         self.height = self.qr.height
@@ -106,7 +106,7 @@ class QRWithLogo(Flowable):
         self.canv.restoreState()
 
         # 2. Overlay the Logo (Centered relative to the CONTAINER)
-        if os.path.exists(self.logo_path):
+        if self.logo_path.exists():
             # Logo is 22% of the QR code size (not the container width)
             logo_w = qr_size * 0.22
             logo = InlineSVG(self.logo_path, width=logo_w, color=self.logo_color)
@@ -278,7 +278,7 @@ FLOWER_COLOR_MAP = {
 
 # --- Usage in generate_plant_pdf ---
 # This creates a lookup dict with absolute or relative paths
-FULL_ICON_MAP = {k: os.path.join(ICON_DIR, v) for k, v in ICON_MAPPING.items()}
+FULL_ICON_MAP = {k: Path(ICON_DIR) / v for k, v in ICON_MAPPING.items()}
 
 
 def get_bloom_colors(plant: Plant):
@@ -624,7 +624,7 @@ def generate_plant_pdf(plant: Plant, selected_images=None):
             # 1. Setup SVG with matching text color
             badge_contents = []
             svg_path = FULL_ICON_MAP.get(attr)
-            if svg_path and os.path.exists(svg_path):
+            if svg_path and svg_path.exists():
                 # Using 12pt icon to match 12pt text
                 badge_contents.append(InlineSVG(svg_path, width=16, color=text_color.hexval()))
 
