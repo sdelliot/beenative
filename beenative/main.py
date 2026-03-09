@@ -127,7 +127,7 @@ def open_documentation(page: ft.Page):
                     selectable=True,
                     extension_set=ft.MarkdownExtensionSet.GITHUB_WEB,
                     md_style_sheet=get_markdown_stylesheet(page),
-                    on_tap_link=lambda e: page.url_launcher(e.data),
+                    on_tap_link=lambda e: asyncio.create_task(ft.UrlLauncher().launch_url(e.data)),
                 ),
             ],
             scroll=ft.ScrollMode.ADAPTIVE,
