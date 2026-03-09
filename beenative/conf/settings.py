@@ -6,7 +6,7 @@ class Settings(DatabaseSettings):
     debug: bool = False
     crawl_dir: str = "beenative/crawls"
     download_maps_dir: str = "beenative/maps"
-
+    crawl_timout: int = 15
     vascular_nc_base_url: str = "https://auth1.dpr.ncparks.gov/flora/"
     vascular_nc_target_url: str = f"{vascular_nc_base_url}species_account.php"
     prairie_moon_base_url: str = "https://qfh40u.a.searchspring.io/api/search/search.json"

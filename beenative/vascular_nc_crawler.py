@@ -80,7 +80,10 @@ def download_plant_data(plant_ids: list, delay: float = 1.0, progress_callback: 
 
         try:
             response = requests.post(
-                settings.vascular_nc_target_url, headers=settings.vascular_nc_headers, data=payload
+                settings.vascular_nc_target_url,
+                headers=settings.vascular_nc_headers,
+                data=payload,
+                timeout=settings.crawl_timout,
             )
             response.raise_for_status()
 
@@ -123,7 +126,7 @@ def download_map_image(soup: BeautifulSoup, plant_id: str) -> Optional[str]:
     # Download if not exists
     if not local_path.exists():
         try:
-            response = requests.get(full_url, stream=True)
+            response = requests.get(full_url, stream=True, timeout=settings.crawl_timout)
             response.raise_for_status()
             with local_path.open("wb") as f:
                 for chunk in response.iter_content(1024):

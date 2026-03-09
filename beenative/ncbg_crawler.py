@@ -65,7 +65,7 @@ class NCBGParser:
 
         inet_call = True
         try:
-            response = session.get(settings.ncbg_target_url, params=self.ncbg_params, timeout=10)
+            response = session.get(settings.ncbg_target_url, params=self.ncbg_params, timeout=settings.crawl_timout)
             response.raise_for_status()
             with file_path.open("wb") as f:
                 f.write(response.content)

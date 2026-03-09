@@ -34,7 +34,10 @@ class PrairieMoonJSONParser:
     def download_pm_json(self, prairie_moon_params):
         try:
             response = requests.get(
-                settings.prairie_moon_base_url, params=prairie_moon_params, headers=settings.prairie_moon_headers
+                settings.prairie_moon_base_url,
+                params=prairie_moon_params,
+                headers=settings.prairie_moon_headers,
+                timeout=settings.crawl_timout,
             )
             response.raise_for_status()
 
