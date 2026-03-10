@@ -107,7 +107,7 @@ jobs:
       - name: Upload Artifact
         uses: actions/upload-artifact@v7
         with:
-          name: build-artifacts
+          name: build-artifacts-${{ matrix.name }}
           path: ${{ env.FINAL_ZIP }}
           if-no-files-found: error
           overwrite: false
@@ -124,7 +124,7 @@ jobs:
       - name: Download all artifacts
         uses: actions/download-artifact@v7
         with:
-          name: build-artifacts
+          pattern: build-artifacts-*
           path: ./dist
           merge-multiple: true
 
