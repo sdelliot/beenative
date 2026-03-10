@@ -1,6 +1,6 @@
-import os
 import time
 from typing import Callable, Optional
+from pathlib import Path
 from urllib.parse import urljoin, urlparse
 
 import polars as pl
@@ -12,10 +12,11 @@ from beenative.settings import settings
 
 def get_native_plant_ids(file_path: str):
     """Parses local HTML to find IDs of native plants."""
-    if not os.path.exists(file_path):
+    file_path_obj = Path(file_path)
+    if not file_path_obj.exists():
         raise FileNotFoundError(f"Source file {file_path} not found.")
 
-    with open(file_path, "r", encoding="utf-8") as f:
+    with file_path_obj.open("r", encoding="utf-8") as f:
         soup = BeautifulSoup(f, "html.parser")
 
     native_ids = []
@@ -59,16 +60,17 @@ def download_plant_data(plant_ids: list, delay: float = 1.0, progress_callback: 
     Executes POST requests and saves files.
     progress_callback: A function to call after each item is processed.
     """
-    if not os.path.exists(settings.crawl_dir):
-        os.makedirs(settings.crawl_dir)
+    crawl_dir = Path(settings.crawl_dir)
+    if not crawl_dir.exists():
+        crawl_dir.mkdir(parents=True)
 
     new_downloads = 0
     skipped_count = 0
 
     for plant_id in plant_ids:
-        file_path = os.path.join(settings.crawl_dir, f"{plant_id}.html")
+        file_path = crawl_dir / f"{plant_id}.html"
 
-        if os.path.exists(file_path):
+        if file_path.exists():
             skipped_count += 1
             if progress_callback:
                 progress_callback()
@@ -78,11 +80,14 @@ def download_plant_data(plant_ids: list, delay: float = 1.0, progress_callback: 
 
         try:
             response = requests.post(
-                settings.vascular_nc_target_url, headers=settings.vascular_nc_headers, data=payload
+                settings.vascular_nc_target_url,
+                headers=settings.vascular_nc_headers,
+                data=payload,
+                timeout=settings.crawl_timout,
             )
             response.raise_for_status()
 
-            with open(file_path, "w", encoding="utf-8") as f:
+            with file_path.open("w", encoding="utf-8") as f:
                 f.write(response.text)
 
             new_downloads += 1
@@ -100,8 +105,8 @@ def download_plant_data(plant_ids: list, delay: float = 1.0, progress_callback: 
 
 def download_map_image(soup: BeautifulSoup, plant_id: str) -> Optional[str]:
     """Finds, downloads, and returns the local path of the map image."""
-    if not os.path.exists(settings.download_maps_dir):
-        os.makedirs(settings.download_maps_dir)
+    if not Path(settings.download_maps_dir).exists():
+        Path(settings.download_maps_dir).mkdir(parents=True)
 
     # Find the img tag with the map
     img_tag = soup.find("img", attrs={"usemap": "#Map"})
@@ -114,16 +119,16 @@ def download_map_image(soup: BeautifulSoup, plant_id: str) -> Optional[str]:
     full_url = urljoin(settings.vascular_nc_base_url, clean_path)
 
     # Define local filename
-    file_extension = os.path.splitext(clean_path)[1]
-    local_filename = f"{plant_id}{file_extension}"
-    local_path = os.path.join(settings.download_maps_dir, local_filename)
+    file_extension = Path(clean_path).suffix
+    local_filename = Path(f"{plant_id}{file_extension}")
+    local_path = Path(settings.download_maps_dir) / local_filename
 
     # Download if not exists
-    if not os.path.exists(local_path):
+    if not local_path.exists():
         try:
-            response = requests.get(full_url, stream=True)
+            response = requests.get(full_url, stream=True, timeout=settings.crawl_timout)
             response.raise_for_status()
-            with open(local_path, "wb") as f:
+            with local_path.open("wb") as f:
                 for chunk in response.iter_content(1024):
                     f.write(chunk)
         except Exception:
@@ -133,10 +138,11 @@ def download_map_image(soup: BeautifulSoup, plant_id: str) -> Optional[str]:
 
 
 def parse_species_file(file_path: str, include_map: bool = True) -> dict:
-    with open(file_path, "r", encoding="utf-8") as f:
+    file_path_obj = Path(file_path)
+    with file_path_obj.open("r", encoding="utf-8") as f:
         soup = BeautifulSoup(f, "html.parser")
 
-    plant_id = os.path.basename(file_path).replace(".html", "")
+    plant_id = file_path_obj.name.replace(".html", "")
     data = {"id": plant_id}
 
     # 1. Parsing the Header Section

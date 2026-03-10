@@ -1,6 +1,6 @@
-import os
 import time
 from typing import Callable, Optional
+from pathlib import Path
 
 import polars as pl
 import requests
@@ -53,26 +53,26 @@ class NCBGParser:
         # 1. Build the URL
         formatted_name = scientific_name.lower()
         self.ncbg_params["plantname"] = formatted_name
-        file_path = os.path.join(settings.crawl_dir, f"{scientific_name}_ncbg.html")
+        file_path = Path(settings.crawl_dir) / f"{scientific_name}_ncbg.html"
 
         content = ""
         inet_call = False
-        if os.path.exists(file_path):
-            with open(file_path, "r") as f:
+        if file_path.exists():
+            with file_path.open("r") as f:
                 content = f.read()
             if content.strip() != self.not_found:
                 return content, inet_call
 
         inet_call = True
         try:
-            response = session.get(settings.ncbg_target_url, params=self.ncbg_params, timeout=10)
+            response = session.get(settings.ncbg_target_url, params=self.ncbg_params, timeout=settings.crawl_timout)
             response.raise_for_status()
-            with open(file_path, "wb") as f:
+            with file_path.open("wb") as f:
                 f.write(response.content)
             content = response.content
         except requests.exceptions.RequestException as e:
             print(f"Error fetching {formatted_name}: {e}")
-            with open(file_path, "w", encoding="utf-8") as f:
+            with file_path.open("w", encoding="utf-8") as f:
                 f.write(self.not_found)
             return None, inet_call
         return content, inet_call

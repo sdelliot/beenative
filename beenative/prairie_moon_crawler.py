@@ -34,13 +34,16 @@ class PrairieMoonJSONParser:
     def download_pm_json(self, prairie_moon_params):
         try:
             response = requests.get(
-                settings.prairie_moon_base_url, params=prairie_moon_params, headers=settings.prairie_moon_headers
+                settings.prairie_moon_base_url,
+                params=prairie_moon_params,
+                headers=settings.prairie_moon_headers,
+                timeout=settings.crawl_timout,
             )
             response.raise_for_status()
 
             data = response.json()
             file_path = Path(settings.crawl_dir) / f"{prairie_moon_params['page']}_{self.json_file_base}"
-            with open(file_path, "w") as f:
+            with file_path.open("w") as f:
                 json.dump(data, f)
 
         except requests.exceptions.RequestException as e:
@@ -85,7 +88,7 @@ class PrairieMoonJSONParser:
         # 'rglob' searches recursively through all subfolders
         for file_path in base_path.rglob(f"*{self.json_file_base}"):
             try:
-                with open(file_path, "r", encoding="utf-8") as f:
+                with file_path.open("r", encoding="utf-8") as f:
                     data = json.load(f)
             except (json.JSONDecodeError, IOError) as e:
                 print(f"Could not read {file_path}: {e}")

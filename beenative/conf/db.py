@@ -17,7 +17,7 @@ class DatabaseSettings(BaseSettings):
         """Determines the correct path for the DB file."""
         if getattr(sys, "frozen", False):
             # Production: Use User's Local App Data to ensure write permissions
-            path = Path(os.getenv("LOCALAPPDATA", os.getcwd())) / "BeeNative"
+            path = Path(os.getenv("LOCALAPPDATA", Path.cwd())) / "BeeNative"
             path.mkdir(parents=True, exist_ok=True)
             return path / self.db_filename
 
