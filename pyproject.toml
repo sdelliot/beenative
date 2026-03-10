@@ -98,7 +98,7 @@ select = [
   "RSE",  # flake8-raise
   "Q",  # flake8-quotes
   # "ARG",      # flake8-unused-arguments
-  "C4",       # flake8-comprehensions
+  "C4",  # flake8-comprehensions
   "PLC",  # Pylint Convention
   "PLE",  # Pylint Error
   # "PLR",      # Pylint Refactor
@@ -106,7 +106,7 @@ select = [
   "PERF",  # Perflint
   # "DOC",      # pydoclint
   # "RUF",      # Ruff-specific rules
-  "PTH",      # flake8-use-pathlib
+  "PTH",  # flake8-use-pathlib
   "DTZ",  # flake8-datetimez
 ]
 # We may want to adhere to D205 and D415 in the future.

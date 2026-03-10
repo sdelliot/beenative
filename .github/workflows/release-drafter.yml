@@ -47,5 +47,6 @@ jobs:
     steps:
       - uses: docker://agilepathway/pull-request-label-checker:v1.6.65
         with:
-          any_of: feature,fix,style,changed,refactor,perf,test,build,ci,chore,revert,deprecated,removed,security,documentation,dependencies
+          any_of: 
+            feature,fix,style,changed,refactor,perf,test,build,ci,chore,revert,deprecated,removed,security,documentation,dependencies
           repo_token: ${{ secrets.GITHUB_TOKEN }}
