@@ -96,10 +96,10 @@ jobs:
           FILE_NAME="BeeNative-${VERSION}-${{ matrix.name }}.zip"
           echo "Packaging $FILE_NAME"
 
-          # 3. Zip everything (including hidden files)
-          cd ${{ matrix.artifact_path }}
-          zip -r "../../$FILE_NAME" .
-          cd ../../
+          # 7z 'a' (add) -r (recurse)
+          # Pointing directly at the folder ensures everything is captured
+          7z a -r "$FILE_NAME" "./${{ matrix.artifact_path }}"
+          (cd "${{ matrix.artifact_path }}" && 7z a -r "../../$FILE_NAME" .)
 
           # 4. Set environment variable for the next step
           echo "FINAL_ZIP=$FILE_NAME" >> $GITHUB_ENV
