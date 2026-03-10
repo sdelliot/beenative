@@ -17,6 +17,9 @@ env:
   FLET_CLI_NO_RICH_OUTPUT: 1
   USE_SYSTEM_PYTHON: true
 
+permissions:
+  contents: read
+
 jobs:
   build:
     name: Build ${{ matrix.name }}
@@ -78,11 +81,57 @@ jobs:
         run: |
           uv run ${{ matrix.build_cmd }} --build-number ${{ github.run_number }} --yes --verbose --skip-flutter-doctor
 
+      - name: Package Assets
+        shell: bash
+        run: |
+          # 1. Determine the version string
+          if [[ "${{ github.ref_type }}" == "tag" ]]; then
+            VERSION="${{ github.ref_name }}"
+          else
+            # Get the first 7 characters of the SHA
+            VERSION=$(echo "${{ github.sha }}" | cut -c1-7)
+          fi
+
+          # 2. Define the final filename
+          FILE_NAME="BeeNative-${VERSION}-${{ matrix.name }}.zip"
+          echo "Packaging $FILE_NAME"
+
+          # 3. Zip everything (including hidden files)
+          cd ${{ matrix.artifact_path }}
+          zip -r "../../$FILE_NAME" .
+          cd ../../
+
+          # 4. Set environment variable for the next step
+          echo "FINAL_ZIP=$FILE_NAME" >> $GITHUB_ENV
+
       - name: Upload Artifact
-        uses: actions/upload-artifact@v7.0.0
+        uses: actions/upload-artifact@v7
         with:
-          name: ${{ matrix.name }}-build-artifact
-          path: ${{ matrix.artifact_path }}
+          name: build-artifacts
+          path: ${{ env.FINAL_ZIP }}
           if-no-files-found: error
           overwrite: false
           include-hidden-files: true
+
+  release:
+    name: Update GitHub Release
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref_type == 'tag'
+    permissions:
+      contents: write
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v7
+        with:
+          name: build-artifacts
+          path: ./dist
+          merge-multiple: true
+
+      - name: Display structure (Debug)
+        run: ls -R ./dist
+
+      - name: Upload to GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ./dist/*.zip
