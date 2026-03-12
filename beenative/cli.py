@@ -6,13 +6,13 @@ from collections.abc import Callable
 
 import typer
 import polars as pl
-from api import BeeNativeAPI
 from alembic import command
-from settings import settings
-from utils.ingest import BeeNativeDB
 from alembic.config import Config
 
 from . import __version__
+from .api import BeeNativeAPI
+from .settings import settings
+from .utils.ingest import BeeNativeDB
 
 app = typer.Typer()
 
