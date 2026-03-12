@@ -1,6 +1,6 @@
-import os
 import json
 import sqlite3
+from pathlib import Path
 
 import polars as pl
 
@@ -71,7 +71,7 @@ class BeeNativeDB:
             conn.commit()
 
         print(f"Successfully synchronized {len(df)} records.")
-        print(f"File size: {os.path.getsize(self.db_path) / 1024:.2f} KB")
+        print(f"File size: {Path(self.db_path).stat().st_size / 1024:.2f} KB")
 
     def query(self, sql_query, params=()):
         """Returns a Polars DF from any SQL query"""

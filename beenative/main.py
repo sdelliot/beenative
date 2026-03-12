@@ -21,7 +21,7 @@ def get_log_path(app_name):
     home = Path.home()
     if system == "Darwin":  # iOS or macOS
         # On iOS, 'HOME' points to the App's Sandbox
-        if "Library" in os.listdir(home):  # macOS
+        if (home / "Library").is_dir():  # macOS
             log_dir = home / "Library/Logs" / app_name
         else:  # iOS Sandbox
             # Documents is the only place we can reliably write/read on iOS
@@ -127,7 +127,7 @@ def open_documentation(page: ft.Page):
                     selectable=True,
                     extension_set=ft.MarkdownExtensionSet.GITHUB_WEB,
                     md_style_sheet=get_markdown_stylesheet(page),
-                    on_tap_link=lambda e: page.url_launcher(e.data),
+                    on_tap_link=lambda e: asyncio.create_task(ft.UrlLauncher().launch_url(e.data)),
                 ),
             ],
             scroll=ft.ScrollMode.ADAPTIVE,
