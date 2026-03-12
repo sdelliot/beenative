@@ -230,11 +230,6 @@ app = true
 packages = true
 package_files = ["**/*.pyi"]
 
-# [tool.flet.macos.cleanup]
-# # This prevents Flet from deleting "non-essential" files in site-packages
-# app = false
-# packages = false
-
 [tool.flet.splash]
 color = "#F4F7F5"
 dark_color = "#121A13"
