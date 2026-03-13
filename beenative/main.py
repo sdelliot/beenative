@@ -1,7 +1,7 @@
 import sys
 from pathlib import Path
 
-base_path = Path(Path(__file__).resolve).parent
+base_path = Path(Path(__file__).resolve()).parent
 if base_path not in sys.path:
     sys.path.insert(0, base_path)
 
