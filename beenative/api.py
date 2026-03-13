@@ -3,6 +3,7 @@ import json
 from pathlib import Path
 from functools import reduce
 from collections import Counter
+from typing import List
 
 import polars as pl
 from rich.panel import Panel
@@ -21,7 +22,7 @@ class BeeNativeAPI:
     """High-level API to coordinate crawling and processing logic."""
 
     @staticmethod
-    def initialize(nc_source: str, delay: float, get_maps: bool, output_vasc: str, output_ncsu: str, output_ncbg: str):
+    def initialize(nc_source: str, delay: float, get_maps: bool, output_vasc: str, output_ncsu: str, output_ncbg: str) -> None:
         """
         Runs all initial collecting of data and some initial processing.
         This does not attempt to merge all data sources yet, rather it collects data
@@ -157,7 +158,7 @@ class BeeNativeAPI:
 
     @staticmethod
     def process_data(
-        input_vasc: str = None, input_ncsu: str = None, input_ncbg: str = None, output_path: str = "merged.parquet"
+        input_vasc: str = "", input_ncsu: str = "", input_ncbg: str = "", output_path: str = "merged.parquet"
     ) -> pl.DataFrame:
         """Processes raw HTML/JSON into a unified structured formats."""
 
@@ -323,7 +324,7 @@ class BeeNativeAPI:
         pass
 
     @staticmethod
-    def create_common_names(df):
+    def create_common_names(df: pl.DataFrame) -> pl.DataFrame:
         # Filter to ground truth: Only NC Vascular Plants
         df_nc_native = df.filter(pl.col("vasc_id").is_not_null())
 
@@ -416,7 +417,7 @@ class BeeNativeAPI:
         return df_final
 
     @staticmethod
-    def merge_wildlife(df):
+    def merge_wildlife(df: pl.DataFrame) -> pl.DataFrame:
         # 1. Standardize and Merge Strings
         df_final = df.with_columns(
             [
@@ -473,7 +474,7 @@ class BeeNativeAPI:
         return df.group_by("scientific_name").agg(aggs)
 
     @staticmethod
-    def parse_dimensions(df):
+    def parse_dimensions(df: pl.DataFrame) -> pl.DataFrame:
         # 1. Flatten list columns into strings
         df_working = df.with_columns(
             [
@@ -675,9 +676,9 @@ class BeeNativeAPI:
         )
 
     @staticmethod
-    def extract_precision_months(text):
+    def extract_precision_months(text: str) -> str:
         if not text or text.lower() in ["null", ""]:
-            return {}
+            return json.dumps({})
 
         season_map = {
             "winter": ["Jan", "Feb", "Dec"],
@@ -729,18 +730,18 @@ class BeeNativeAPI:
         return json.dumps(dict(weights))  # Returns e.g., {"May": 2, "Jun": 2, "Apr": 1}
 
     @staticmethod
-    def format_col(col_name, df_final):
+    def format_col(col_name: str, df_final: pl.DataFrame) -> pl.Expr:
         # Check if column exists, then handle list vs string
         if col_name not in df_final.columns:
             return pl.lit("Missing").alias(col_name)
 
         dtype = df_final.schema.get(col_name)
         if isinstance(dtype, pl.List):
-            return pl.col(col_name).list.join(", ")
-        return pl.col(col_name).cast(pl.Utf8).fill_null("null")
+            return pl.col(col_name).list.join(", ").alias(col_name)
+        return pl.col(col_name).cast(pl.Utf8).fill_null("null").alias(col_name)
 
     @staticmethod
-    def update_bloomtime(df):
+    def update_bloomtime(df: pl.DataFrame) -> pl.DataFrame:
         return df.with_columns(
             bloom_months=pl.when(
                 # Check for non-empty lists or non-empty strings in precision columns
@@ -768,7 +769,7 @@ class BeeNativeAPI:
         )
 
     @staticmethod
-    def prepare_for_sqlite(df):
+    def prepare_for_sqlite(df: pl.DataFrame) -> pl.DataFrame:
         # 1. Standard Type Sanitization
         df = df.with_columns(
             [
@@ -781,12 +782,12 @@ class BeeNativeAPI:
         return df
 
     @staticmethod
-    def remove_non_nc_plants(df):
+    def remove_non_nc_plants(df: pl.DataFrame) -> pl.DataFrame:
         df = df.filter((pl.col("vasc_id").cast(pl.String).is_not_null()) & (pl.col("vasc_id").cast(pl.String) != ""))
         return df
 
     @staticmethod
-    def standardize_colors(df):
+    def standardize_colors(df: pl.DataFrame) -> pl.DataFrame:
         COLOR_MAP = {
             "Yellow": ["yellow", "gold", "lemon", "chartreuse", "goldenrod"],
             "White": ["white", "cream", "off-white", "whitish"],
@@ -801,7 +802,7 @@ class BeeNativeAPI:
         }
 
         # Helper to convert List or String to a flat lowercase string for searching
-        def to_searchable_str(col_name):
+        def to_searchable_str(col_name: str) -> pl.Expr:
             dtype = df.schema.get(col_name)
             if isinstance(dtype, pl.List):
                 return pl.col(col_name).list.join(" ").fill_null("")
@@ -834,7 +835,7 @@ class BeeNativeAPI:
         return df_final.drop([f"_is_{m.lower()}" for m in COLOR_MAP.keys()] + ["_color_search"])
 
     @staticmethod
-    def categorize_plants(df):
+    def categorize_plants(df: pl.DataFrame) -> pl.DataFrame:
         WOODY_MAP = {
             "Trees": ["tree", "arborescent", "canopy", "conifer", "pine", "fir", "cedar"],
             "Shrubs": ["shrub", "bush", "multistemmed"],
@@ -846,7 +847,7 @@ class BeeNativeAPI:
         GRASS_KEYWORDS = ["grass", "sedge", "graminoid", "rush"]
         FERN_KEYWORDS = ["fern", "frond", "spore"]
 
-        def to_searchable_str(cols):
+        def to_searchable_str(cols: List[str]) -> pl.Expr:
             return (
                 pl.concat_str(
                     [
@@ -892,7 +893,7 @@ class BeeNativeAPI:
 
         # 3. Apply Herbaceous logic with an "Absolute Override"
         # Even if NCSU says 'Perennial', if it's a Tree, we skip the Forb label.
-        def build_herb_expr(name, keywords, block_completely=False):
+        def build_herb_expr(name: str, keywords: List[str], block_completely: bool=False) -> pl.Expr:
             pattern = "|".join([rf"\b{name.lower()}\b"] + [rf"\b{k}\b" for k in keywords])
             col_alias = f"_is_{name.replace(' & ', '_').lower()}"
 
