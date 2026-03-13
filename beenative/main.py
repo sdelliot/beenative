@@ -1,19 +1,25 @@
-import os
-import json
-import math
-import asyncio
-import logging
-import platform
+import sys
 from pathlib import Path
 
-import flet as ft
-import pdf_gen
-import utils.utils as bn_utils
-from settings import settings
-from db.engine import db_manager
-from sqlalchemy import inspect
-from models.plant import Plant
-from db.repository import search_plants
+base_path = Path(Path(__file__).resolve).parent
+if base_path not in sys.path:
+    sys.path.insert(0, base_path)
+
+import os  # noqa: E402
+import json  # noqa: E402
+import math  # noqa: E402
+import asyncio  # noqa: E402
+import logging  # noqa: E402
+import platform  # noqa: E402
+
+import flet as ft  # noqa: E402
+import pdf_gen  # noqa: E402
+import utils.utils as bn_utils  # noqa: E402
+from settings import settings  # noqa: E402
+from db.engine import db_manager  # noqa: E402
+from sqlalchemy import inspect  # noqa: E402
+from models.plant import Plant  # noqa: E402
+from db.repository import search_plants  # noqa: E402
 
 
 def get_log_path(app_name):
