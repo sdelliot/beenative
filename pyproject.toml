@@ -221,10 +221,14 @@ message = "Starting up the app…"
 [tool.flet.macos]
 source_packages = ["pillow"]
 
-[tool.flet.macos.cleanup]
-# This prevents Flet from deleting "non-essential" files in site-packages
-app = false
-packages = false
+[tool.flet.compile]
+app = true
+packages = true
+
+[tool.flet.cleanup]
+app = true
+packages = true
+package_files = ["**/*.pyi"]
 
 [tool.flet.splash]
 color = "#F4F7F5"
