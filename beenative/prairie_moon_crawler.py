@@ -4,8 +4,7 @@ from pathlib import Path
 
 import polars as pl
 import requests
-
-from .settings import settings
+from settings import settings
 
 
 class PrairieMoonJSONParser:
