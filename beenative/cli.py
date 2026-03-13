@@ -1,18 +1,24 @@
-import asyncio
-from typing import Any
+import sys
 from pathlib import Path
-from functools import wraps
-from collections.abc import Callable
 
-import typer
-import polars as pl
-from api import BeeNativeAPI
-from alembic import command
-from settings import settings
-from utils.ingest import BeeNativeDB
-from alembic.config import Config
+base_path = Path(Path(__file__).resolve()).parent
+if base_path not in sys.path:
+    sys.path.insert(0, base_path)
 
-from . import __version__
+import asyncio  # noqa: E402
+from typing import Any  # noqa: E402
+from functools import wraps  # noqa: E402
+from collections.abc import Callable  # noqa: E402
+
+import typer  # noqa: E402
+import polars as pl  # noqa: E402
+from api import BeeNativeAPI  # noqa: E402
+from alembic import command  # noqa: E402
+from settings import settings  # noqa: E402
+from utils.ingest import BeeNativeDB  # noqa: E402
+from alembic.config import Config  # noqa: E402
+
+from . import __version__  # noqa: E402
 
 app = typer.Typer()
 
