@@ -1,9 +1,9 @@
 import re
 import json
+from typing import Any, Dict, List, Tuple
 from pathlib import Path
 from functools import reduce
 from collections import Counter
-from typing import List, Dict, Any, Tuple
 
 import polars as pl
 from rich.panel import Panel
@@ -22,7 +22,9 @@ class BeeNativeAPI:
     """High-level API to coordinate crawling and processing logic."""
 
     @staticmethod
-    def initialize(nc_source: str, delay: float, get_maps: bool, output_vasc: str, output_ncsu: str, output_ncbg: str) -> None:
+    def initialize(
+        nc_source: str, delay: float, get_maps: bool, output_vasc: str, output_ncsu: str, output_ncbg: str
+    ) -> None:
         """
         Runs all initial collecting of data and some initial processing.
         This does not attempt to merge all data sources yet, rather it collects data
@@ -218,7 +220,9 @@ class BeeNativeAPI:
                 def update_ncsu_bar(name: str) -> None:
                     progress.update(task_ncsu, advance=1, description=f"[cyan]🐺 Parsing: {name}")
 
-                ncsu_input_df = plant_toolbox_crawler.get_all_plants(plant_list, delay=settings.crawl_timout, progress_callback=update_ncsu_bar)
+                ncsu_input_df = plant_toolbox_crawler.get_all_plants(
+                    plant_list, delay=settings.crawl_timout, progress_callback=update_ncsu_bar
+                )
 
             task_ncsu_desc = "[cyan]🐺 Processing NC Plant Toolbox data: "
             task_ncsu = progress.add_task(f"{task_ncsu_desc}", total=len(ncsu_input_df))
@@ -887,7 +891,7 @@ class BeeNativeAPI:
 
         # 3. Apply Herbaceous logic with an "Absolute Override"
         # Even if NCSU says 'Perennial', if it's a Tree, we skip the Forb label.
-        def build_herb_expr(name: str, keywords: List[str], block_completely: bool=False) -> pl.Expr:
+        def build_herb_expr(name: str, keywords: List[str], block_completely: bool = False) -> pl.Expr:
             pattern = "|".join([rf"\b{name.lower()}\b"] + [rf"\b{k}\b" for k in keywords])
             col_alias = f"_is_{name.replace(' & ', '_').lower()}"
 
