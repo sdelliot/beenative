@@ -3,6 +3,7 @@ import os
 import re
 from io import BytesIO
 from pathlib import Path
+from typing import List, Dict, Tuple, Optional, Sequence
 from datetime import datetime
 
 import segno
@@ -13,12 +14,12 @@ from svglib.svglib import svg2rlg
 from reportlab.graphics import renderPDF
 from reportlab.platypus import Image, Table, Spacer, Flowable, Paragraph, TableStyle, SimpleDocTemplate
 from reportlab.lib.units import inch
-from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.lib.styles import getSampleStyleSheet, PropertySet
 from reportlab.lib.pagesizes import letter, landscape
 
 
 class InlineSVG(Flowable):
-    def __init__(self, source, width=12, color="#1B5E20"):
+    def __init__(self, source: Path | BytesIO, width: float = 12, color: colors.Color | str = "#1B5E20"):
         Flowable.__init__(self)
         if hasattr(source, "read"):
             svg_text = source.read().decode("utf-8")
@@ -44,12 +45,13 @@ class InlineSVG(Flowable):
 
         self.drawing = svg2rlg(BytesIO(svg_text.encode("utf-8")))
 
-        # 1. Calculate Bounds ONCE and store the CONTENT dimensions
-        bounds = self.drawing.getBounds()
-        self._content_x = bounds[0]
-        self._content_y = bounds[1]
-        self._content_w = bounds[2] - bounds[0]
-        self._content_h = bounds[3] - bounds[1]
+        if self.drawing:
+            # 1. Calculate Bounds ONCE and store the CONTENT dimensions
+            bounds = self.drawing.getBounds()
+            self._content_x = bounds[0]
+            self._content_y = bounds[1]
+            self._content_w = bounds[2] - bounds[0]
+            self._content_h = bounds[3] - bounds[1]
 
         # Avoid division by zero for empty SVGs
         if self._content_w == 0:
@@ -61,10 +63,10 @@ class InlineSVG(Flowable):
         # Initial height calculation
         self.height = self._content_h * (width / self._content_w)
 
-    def wrap(self, availWidth, availHeight):
+    def wrap(self, availWidth: float, availHeight: float) -> Tuple[float, float]:
         return self.width, self.height
 
-    def draw(self):
+    def draw(self) -> None:
         # 2. FIX: Calculate scale based on CONTENT width, not drawing.width
         # This ensures the visible pixels expand to fill 'self.width' exactly
         scale = self.width / self._content_w
@@ -74,12 +76,13 @@ class InlineSVG(Flowable):
 
         # 3. FIX: Shift using the stored content offsets
         # This aligns the top-left visible pixel to (0,0) on the canvas
-        renderPDF.draw(self.drawing, self.canv, -self._content_x, -self._content_y)
+        if self.drawing:
+            renderPDF.draw(self.drawing, self.canv, -self._content_x, -self._content_y)
         self.canv.restoreState()
 
 
 class QRWithLogo(Flowable):
-    def __init__(self, qr_stream, logo_path, size=1.0 * inch, logo_color="#1B5E20"):
+    def __init__(self, qr_stream: Path | BytesIO, logo_path: os.PathLike, size: float = 1.0 * inch, logo_color: colors.Color | str = "#1B5E20"):
         Flowable.__init__(self)
         self.qr = InlineSVG(qr_stream, width=size, color="#000000")
         self.logo_path = Path(logo_path)
@@ -87,10 +90,10 @@ class QRWithLogo(Flowable):
         self.width = self.qr.width
         self.height = self.qr.height
 
-    def wrap(self, availWidth, availHeight):
+    def wrap(self, availWidth: float, availHeight: float) -> Tuple[float, float]:
         return self.width, self.height
 
-    def draw(self):
+    def draw(self) -> None:
         # 1. Center the QR Code in the container
         # Even if the container is rectangular, we draw the QR square
         qr_size = min(self.width, self.height)
@@ -128,7 +131,7 @@ class QRWithLogo(Flowable):
             self.canv.restoreState()
 
 
-def generate_qr_flowable(plant: Plant, size=0.8 * inch):
+def generate_qr_flowable(plant: Plant, size: float = 0.8 * inch) -> QRWithLogo:
     target_url = plant.ncsu_url or plant.pm_url or plant.ncbg_permalink
     if not target_url:
         return None
@@ -148,8 +151,8 @@ def generate_qr_flowable(plant: Plant, size=0.8 * inch):
 MONTH_ORDER = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 
 
-def sort_bloom_dict(data):
-    """Parses the JSON string and returns a list of (Month, Intensity) tuples in calendar order."""
+def sort_bloom_dict(data: Dict) -> List[Tuple[str, int]]:
+    """Parses the JSON dictionary and returns a list of (Month, Intensity) tuples in calendar order."""
     if not data:
         return []
 
@@ -157,7 +160,7 @@ def sort_bloom_dict(data):
     return [(m_name, data[m_name]) for m_name in MONTH_ORDER if m_name in data]
 
 
-def get_intensity_color(base_color, intensity):
+def get_intensity_color(base_color: colors.Color, intensity: int) -> colors.Color:
     """
     Returns the base color for peak (2),
     or a manually faded version for partial (1).
@@ -175,7 +178,7 @@ def get_intensity_color(base_color, intensity):
     )
 
 
-def sort_categories(plant_categories, master_order):
+def sort_categories(plant_categories: List, master_order: List) -> list:
     """
     Sorts the categories found in the plant data to match the botanical order.
     """
@@ -281,7 +284,7 @@ FLOWER_COLOR_MAP = {
 FULL_ICON_MAP = {k: Path(ICON_DIR) / v for k, v in ICON_MAPPING.items()}
 
 
-def get_bloom_colors(plant: Plant):
+def get_bloom_colors(plant: Plant) -> List[colors.Color]:
     """Returns the hex colors for the plant's flowers."""
     raw_colors = plant.flower_colors
 
@@ -289,7 +292,7 @@ def get_bloom_colors(plant: Plant):
     return [FLOWER_COLOR_MAP.get(c.lower(), FLET_WILDLIFE_TEXT) for c in raw_colors]
 
 
-def p_text(text, style=None, alignment=1, custom_color=None, custom_size=None):
+def p_text(text: str, style: Optional[PropertySet] = None, alignment: int = 1, custom_color: Optional[colors.Color] = None, custom_size: Optional[int] = None) -> Paragraph:
     """
     Advanced paragraph helper.
     Uses 'Normal' as base unless 'style' is provided, then applies overrides.
@@ -310,7 +313,7 @@ def p_text(text, style=None, alignment=1, custom_color=None, custom_size=None):
     return Paragraph(text, p_style)
 
 
-def get_pdf_caption(info):
+def get_pdf_caption(info: Dict) -> str:
     """Returns an XML string for ReportLab Paragraphs."""
     if not info:
         return ""
@@ -336,7 +339,7 @@ def get_pdf_caption(info):
     return "".join(parts) + "."
 
 
-def create_justified_photo_gallery(selected_images, available_width, qr_flowable=None):
+def create_justified_photo_gallery(selected_images: List, available_width: float, qr_flowable=None) -> Sequence[Flowable]:
     """
     Creates a modern, justified photo grid where images are scaled to fill rows perfectly.
     The QR code is integrated as the first 'photo'.
@@ -441,7 +444,7 @@ def create_justified_photo_gallery(selected_images, available_width, qr_flowable
     return elements
 
 
-def generate_plant_pdf(plant: Plant, selected_images=None):
+def generate_plant_pdf(plant: Plant, selected_images: List | None = None) -> BytesIO:
     buffer = io.BytesIO()
     PAGE_WIDTH = 11 * inch
     MARGIN = 15
@@ -472,7 +475,7 @@ def generate_plant_pdf(plant: Plant, selected_images=None):
     )
 
     # --- Internal Helpers ---
-    def get_contrast_color(bg_color):
+    def get_contrast_color(bg_color: colors.Color):
         luminance = (0.299 * bg_color.red) + (0.587 * bg_color.green) + (0.114 * bg_color.blue)
         return colors.white if luminance < 0.5 else colors.black
 
@@ -490,7 +493,7 @@ def generate_plant_pdf(plant: Plant, selected_images=None):
         canvas.drawRightString(doc.pagesize[0] - MARGIN, 0.4 * inch, f"Page {doc.page}")
         canvas.restoreState()
 
-    def create_segmented_bar(categories, color_map, total_width):
+    def create_segmented_bar(categories: List, color_map: Dict, total_width: float) -> Table:
         if not categories:
             return Table([[p_text("N/A")]], colWidths=[total_width])
 
@@ -498,7 +501,7 @@ def generate_plant_pdf(plant: Plant, selected_images=None):
         row_content = []
 
         # We define a list of background colors for the cells
-        cell_styles = [
+        cell_styles: List[Tuple] = [
             ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
             ("LEFTPADDING", (0, 0), (-1, -1), 0),
             ("RIGHTPADDING", (0, 0), (-1, -1), 0),
@@ -525,12 +528,12 @@ def generate_plant_pdf(plant: Plant, selected_images=None):
         t.setStyle(TableStyle(cell_styles))
         return t
 
-    def create_bloom_legend(primary_color, total_width):
+    def create_bloom_legend(primary_color: colors.Color, total_width: float) -> Table:
         """Creates a small legend right-justified below the bloom bar."""
         peak_color = primary_color
         partial_color = get_intensity_color(primary_color, 1)
 
-        def make_swatch(color):
+        def make_swatch(color: colors.Color) -> Table:
             t = Table([[""]], colWidths=[10], rowHeights=[10])
             t.setStyle(
                 TableStyle(
@@ -568,7 +571,7 @@ def generate_plant_pdf(plant: Plant, selected_images=None):
         )
         return t
 
-    def create_bloom_bar(bloom_dict, flower_colors_list, total_width):
+    def create_bloom_bar(bloom_dict: Dict, flower_colors_list: List, total_width: float) -> Optional[Table]:
         sorted_data = sort_bloom_dict(bloom_dict)
         if not sorted_data:
             return None
@@ -580,7 +583,7 @@ def generate_plant_pdf(plant: Plant, selected_images=None):
         col_width = total_width / num_segments
 
         row_content = []
-        cell_styles = [
+        cell_styles: List[Tuple] = [
             ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
             ("ALIGN", (0, 0), (-1, -1), "CENTER"),
             ("ROUNDEDCORNERS", [6, 6, 6, 6]),
@@ -609,7 +612,7 @@ def generate_plant_pdf(plant: Plant, selected_images=None):
         t.setStyle(TableStyle(cell_styles))
         return t
 
-    def create_badge_row(attributes, attr_type, label_text, max_width):
+    def create_badge_row(attributes: List, attr_type: str, label_text: str, max_width: float) -> List[Flowable]:
         if not attributes:
             return []
 
@@ -661,7 +664,7 @@ def generate_plant_pdf(plant: Plant, selected_images=None):
             badges.append(pill)
 
         # --- WRAPPING LOGIC (Adjusted for 12pt width) ---
-        rows, current_row, current_w = [], [], 0
+        rows, current_row, current_w = [], [], 0.0
         for b in badges:
             attr_name = attributes[badges.index(b)]
             # Heuristic for 12pt: ~7.5pts per char + 25pts for icon/padding
@@ -729,7 +732,7 @@ def generate_plant_pdf(plant: Plant, selected_images=None):
     dynamic_widths = [RIGHT_COLUMN_WIDTH / num_cols] * num_cols
 
     # 3. Build the table
-    right_stack = [
+    right_stack: List[List[Flowable]] = [
         # 1. Main Info Grid (Top)
         [
             Table(
@@ -852,7 +855,7 @@ def generate_plant_pdf(plant: Plant, selected_images=None):
         # Use a placeholder if both methods failed
         map_img = p_text("[Map Data Unavailable]", style=styles["Italic"])
 
-    left_stack = [
+    left_stack: List[List[Flowable]] = [
         [p_text(", ".join(plant.all_common_names), style=common_name_style, alignment=0)],
         [Spacer(1, 8)],
         [map_img],
