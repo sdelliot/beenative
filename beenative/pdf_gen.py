@@ -82,7 +82,13 @@ class InlineSVG(Flowable):
 
 
 class QRWithLogo(Flowable):
-    def __init__(self, qr_stream: Path | BytesIO, logo_path: os.PathLike, size: float = 1.0 * inch, logo_color: colors.Color | str = "#1B5E20"):
+    def __init__(
+        self,
+        qr_stream: Path | BytesIO,
+        logo_path: os.PathLike,
+        size: float = 1.0 * inch,
+        logo_color: colors.Color | str = "#1B5E20",
+    ):
         Flowable.__init__(self)
         self.qr = InlineSVG(qr_stream, width=size, color="#000000")
         self.logo_path = Path(logo_path)
@@ -292,7 +298,13 @@ def get_bloom_colors(plant: Plant) -> List[colors.Color]:
     return [FLOWER_COLOR_MAP.get(c.lower(), FLET_WILDLIFE_TEXT) for c in raw_colors]
 
 
-def p_text(text: str, style: Optional[PropertySet] = None, alignment: int = 1, custom_color: Optional[colors.Color] = None, custom_size: Optional[int] = None) -> Paragraph:
+def p_text(
+    text: str,
+    style: Optional[PropertySet] = None,
+    alignment: int = 1,
+    custom_color: Optional[colors.Color] = None,
+    custom_size: Optional[int] = None,
+) -> Paragraph:
     """
     Advanced paragraph helper.
     Uses 'Normal' as base unless 'style' is provided, then applies overrides.
@@ -339,7 +351,9 @@ def get_pdf_caption(info: Dict) -> str:
     return "".join(parts) + "."
 
 
-def create_justified_photo_gallery(selected_images: List, available_width: float, qr_flowable=None) -> Sequence[Flowable]:
+def create_justified_photo_gallery(
+    selected_images: List, available_width: float, qr_flowable=None
+) -> Sequence[Flowable]:
     """
     Creates a modern, justified photo grid where images are scaled to fill rows perfectly.
     The QR code is integrated as the first 'photo'.
