@@ -182,7 +182,6 @@ omit = [
 asyncio_default_fixture_loop_scope = "function"
 
 [tool.mypy]
-
 check_untyped_defs = true
 disallow_incomplete_defs = true
 disallow_untyped_calls = false
@@ -197,15 +196,14 @@ warn_unused_ignores = true
 ignore_missing_imports = true
 
 exclude = [
-    '.*/db/.*\.py',
-    '.*/models/.*\.py',
-    '.*/utils/.*\.py',
-    'main.py',
-    'cli.py',
-    'pdf_gen.py',
-    'settings.py',
-    '.*_crawler.py',
-    'api.py'
+  '.*/db/.*\.py',
+  '.*/models/.*\.py',
+  '.*/utils/.*\.py',
+  "main.py",
+  "cli.py",
+  # 'pdf_gen.py',
+  ".*_crawler.py",
+  "api.py"
 ]
 
 [tool.uv]

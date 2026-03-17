@@ -2,8 +2,8 @@ import io
 import os
 import re
 from io import BytesIO
+from typing import Any, Dict, List, Tuple, Optional, Sequence, TypedDict, cast
 from pathlib import Path
-from typing import List, Dict, Tuple, Optional, Sequence
 from datetime import datetime
 
 import segno
@@ -11,11 +11,18 @@ import requests
 from models.plant import Plant
 from reportlab.lib import colors
 from svglib.svglib import svg2rlg
+from reportlab.pdfgen import canvas
 from reportlab.graphics import renderPDF
 from reportlab.platypus import Image, Table, Spacer, Flowable, Paragraph, TableStyle, SimpleDocTemplate
 from reportlab.lib.units import inch
-from reportlab.lib.styles import getSampleStyleSheet, PropertySet
+from reportlab.lib.styles import PropertySet, getSampleStyleSheet
 from reportlab.lib.pagesizes import letter, landscape
+
+
+class ImageRowItem(TypedDict):
+    obj: Flowable
+    aspect: float
+    caption: str
 
 
 class InlineSVG(Flowable):
@@ -43,7 +50,9 @@ class InlineSVG(Flowable):
         if "fill=" not in svg_text and "fill:" not in svg_text:
             svg_text = svg_text.replace("<svg ", f'<svg fill="{color_str}" ')
 
-        self.drawing = svg2rlg(BytesIO(svg_text.encode("utf-8")))
+        # svg2rlg can handle BytesIO objects and the documentation supports, it
+        # even if the typing doesn't permit it
+        self.drawing = svg2rlg(cast(Any, BytesIO(svg_text.encode("utf-8"))))
 
         if self.drawing:
             # 1. Calculate Bounds ONCE and store the CONTENT dimensions
@@ -137,7 +146,7 @@ class QRWithLogo(Flowable):
             self.canv.restoreState()
 
 
-def generate_qr_flowable(plant: Plant, size: float = 0.8 * inch) -> QRWithLogo:
+def generate_qr_flowable(plant: Plant, size: float = 0.8 * inch) -> Optional[QRWithLogo]:
     target_url = plant.ncsu_url or plant.pm_url or plant.ncbg_permalink
     if not target_url:
         return None
@@ -352,7 +361,7 @@ def get_pdf_caption(info: Dict) -> str:
 
 
 def create_justified_photo_gallery(
-    selected_images: List, available_width: float, qr_flowable=None
+    selected_images: List, available_width: float, qr_flowable: Optional[Flowable] = None
 ) -> Sequence[Flowable]:
     """
     Creates a modern, justified photo grid where images are scaled to fill rows perfectly.
@@ -361,7 +370,7 @@ def create_justified_photo_gallery(
     if not selected_images and not qr_flowable:
         return []
 
-    elements = []
+    elements: List[Flowable] = []
     styles = getSampleStyleSheet()
 
     # --- Justified Row Logic ---
@@ -369,7 +378,7 @@ def create_justified_photo_gallery(
     spacing = 10
 
     # 1. Fetch and Pre-process Image Dimensions
-    processed_items = []
+    processed_items: List[ImageRowItem] = []
 
     # Treat QR code as a 1:1 aspect ratio 'image'
     if qr_flowable:
@@ -390,8 +399,8 @@ def create_justified_photo_gallery(
         return []
 
     # 2. Group into Rows and Scale
-    current_row = []
-    current_row_aspect_sum = 0
+    current_row: List[ImageRowItem] = []
+    current_row_aspect_sum: float = 0
 
     for item in processed_items:
         current_row.append(item)
@@ -467,7 +476,7 @@ def generate_plant_pdf(plant: Plant, selected_images: List | None = None) -> Byt
     doc = SimpleDocTemplate(
         buffer, pagesize=landscape(letter), rightMargin=MARGIN, leftMargin=MARGIN, topMargin=MARGIN, bottomMargin=MARGIN
     )
-    elements = []
+    elements: List[Flowable] = []
     styles = getSampleStyleSheet()
 
     # --- Styles ---
@@ -489,11 +498,11 @@ def generate_plant_pdf(plant: Plant, selected_images: List | None = None) -> Byt
     )
 
     # --- Internal Helpers ---
-    def get_contrast_color(bg_color: colors.Color):
+    def get_contrast_color(bg_color: colors.Color) -> colors.Color:
         luminance = (0.299 * bg_color.red) + (0.587 * bg_color.green) + (0.114 * bg_color.blue)
         return colors.white if luminance < 0.5 else colors.black
 
-    def draw_footer(canvas, doc):
+    def draw_footer(canvas: canvas.Canvas, doc: SimpleDocTemplate) -> None:
         canvas.saveState()
         # Footer text
         footer_text = f"BeeNative Plant Data Sheet | Generated: {datetime.now().astimezone().strftime('%Y-%m-%d')}"
@@ -639,7 +648,7 @@ def generate_plant_pdf(plant: Plant, selected_images: List | None = None) -> Byt
         badges = []
         for attr in attributes:
             # 1. Setup SVG with matching text color
-            badge_contents = []
+            badge_contents: List[Flowable] = []
             svg_path = FULL_ICON_MAP.get(attr)
             if svg_path and svg_path.exists():
                 # Using 12pt icon to match 12pt text
@@ -678,7 +687,9 @@ def generate_plant_pdf(plant: Plant, selected_images: List | None = None) -> Byt
             badges.append(pill)
 
         # --- WRAPPING LOGIC (Adjusted for 12pt width) ---
-        rows, current_row, current_w = [], [], 0.0
+        rows = []
+        current_row: List[Flowable] = []
+        current_w: float = 0.0
         for b in badges:
             attr_name = attributes[badges.index(b)]
             # Heuristic for 12pt: ~7.5pts per char + 25pts for icon/padding
@@ -845,7 +856,7 @@ def generate_plant_pdf(plant: Plant, selected_images: List | None = None) -> Byt
     map_path = Path(assets_dir) / map_raw_path if map_raw_path else None
 
     # 1. Attempt Local File, then URL
-    map_img = None
+    map_img: Flowable
     if map_path and map_path.exists():
         map_img = Image(str(map_path.absolute()))
     elif map_url:
@@ -857,7 +868,7 @@ def generate_plant_pdf(plant: Plant, selected_images: List | None = None) -> Byt
             pass  # Fallback handled below
 
     # 2. Handle Success vs Failure
-    if map_img:
+    if isinstance(map_img, Image):
         # Ensure dimensions exist before calculation
         img_w = map_img.imageWidth
         img_h = map_img.imageHeight
