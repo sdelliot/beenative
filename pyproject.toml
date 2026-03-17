@@ -201,7 +201,6 @@ exclude = [
   '.*/utils/.*\.py',
   "main.py",
   "cli.py",
-  # 'pdf_gen.py',
   ".*_crawler.py",
   "api.py"
 ]
