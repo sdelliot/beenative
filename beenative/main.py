@@ -559,10 +559,12 @@ async def main(page: ft.Page):
             return ft.Container(width=0, height=0)
 
         # Get image_data_list (NC Botanical Gargen)
-        image_data_list = plant.ncbg_images
+        image_data_list = getattr(plant, "ncbg_images", []) or []
 
-        # Get image_data_list (NCSU)
-        image_data_list.extend(plant.ncsu_images)
+        # Get any Plant Toolbox images
+        ncsu_images = getattr(plant, "ncsu_images", []) or []
+
+        image_data_list.extend(ncsu_images)
 
         if not image_data_list:
             return ft.Container(width=0, height=0)
@@ -1418,7 +1420,7 @@ async def main(page: ft.Page):
                     plant.ncsu_html_description, base_url=settings.ncsu_plant_toolbox_base_url
                 )
             elif plant.pm_about:
-                description = plant.pm_about
+                description = bn_utils.clean_pm_plant_description(plant.pm_about)
             elif plant.vasc_distribution:
                 description = plant.vasc_distribution
             elif plant.vasc_identification:
