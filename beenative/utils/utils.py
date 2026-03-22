@@ -1,3 +1,5 @@
+import re
+import html
 import json
 import pprint
 import asyncio
@@ -8,6 +10,29 @@ import flet as ft
 import requests
 from bs4 import BeautifulSoup, NavigableString
 from PIL import Image
+
+
+def clean_pm_plant_description(raw_text: str) -> str:
+    if not raw_text:
+        return ""
+
+    # Double decode string
+    text = html.unescape(html.unescape(raw_text))
+
+    # Cut the table and everything after it
+    table_trigger = "Live Plant Shipping Table"
+    if table_trigger in text:
+        text = text.split(table_trigger)[0]
+
+    # Target sequences containing at least two \xa0 characters for a newline
+    pattern = r"\xa0[ \xa0]*\xa0"
+    text = re.sub(pattern, "\n", text)
+
+    text = text.replace("\xa0", " ")
+
+    lines = [line.strip() for line in text.split("\n") if line.strip()]
+
+    return "\n\n".join(lines)
 
 
 def format_value(val):

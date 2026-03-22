@@ -36,6 +36,8 @@ dependencies = [
   "requests>=2.32.5",
   "segno>=1.6.6",
   "svglib>=1.5.0",
+  "types-reportlab>=4.4.10.20260223",
+  "types-requests>=2.32.4.20260107",
   "urllib3>=2.6.2",
 ]
 dynamic = ["version"]
@@ -185,10 +187,23 @@ disallow_incomplete_defs = true
 disallow_untyped_calls = false
 disallow_untyped_defs = true
 no_implicit_optional = true
+
 plugins = ["pydantic.mypy"]
 strict_optional = true
 warn_return_any = true
 warn_unused_ignores = true
+
+ignore_missing_imports = true
+
+exclude = [
+  '.*/db/.*\.py',
+  '.*/models/.*\.py',
+  '.*/utils/.*\.py',
+  "main.py",
+  "cli.py",
+  ".*_crawler.py",
+  "api.py"
+]
 
 [tool.uv]
 exclude-newer = "1 week"
@@ -221,10 +236,14 @@ message = "Starting up the app…"
 [tool.flet.macos]
 source_packages = ["pillow"]
 
-[tool.flet.macos.cleanup]
-# This prevents Flet from deleting "non-essential" files in site-packages
-app = false
-packages = false
+[tool.flet.compile]
+app = true
+packages = true
+
+[tool.flet.cleanup]
+app = true
+packages = true
+package_files = ["**/*.pyi"]
 
 [tool.flet.splash]
 color = "#F4F7F5"

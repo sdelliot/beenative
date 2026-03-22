@@ -1,19 +1,25 @@
-import os
-import json
-import math
-import asyncio
-import logging
-import platform
+import sys
 from pathlib import Path
 
-import flet as ft
-import pdf_gen
-import utils.utils as bn_utils
-from settings import settings
-from db.engine import db_manager
-from sqlalchemy import inspect
-from models.plant import Plant
-from db.repository import search_plants
+base_path = Path(Path(__file__).resolve()).parent
+if base_path not in sys.path:
+    sys.path.insert(0, base_path)
+
+import os  # noqa: E402
+import json  # noqa: E402
+import math  # noqa: E402
+import asyncio  # noqa: E402
+import logging  # noqa: E402
+import platform  # noqa: E402
+
+import flet as ft  # noqa: E402
+import pdf_gen  # noqa: E402
+import utils.utils as bn_utils  # noqa: E402
+from settings import settings  # noqa: E402
+from db.engine import db_manager  # noqa: E402
+from sqlalchemy import inspect  # noqa: E402
+from models.plant import Plant  # noqa: E402
+from db.repository import search_plants  # noqa: E402
 
 
 def get_log_path(app_name):
@@ -553,10 +559,12 @@ async def main(page: ft.Page):
             return ft.Container(width=0, height=0)
 
         # Get image_data_list (NC Botanical Gargen)
-        image_data_list = plant.ncbg_images
+        image_data_list = getattr(plant, "ncbg_images", []) or []
 
-        # Get image_data_list (NCSU)
-        image_data_list.extend(plant.ncsu_images)
+        # Get any Plant Toolbox images
+        ncsu_images = getattr(plant, "ncsu_images", []) or []
+
+        image_data_list.extend(ncsu_images)
 
         if not image_data_list:
             return ft.Container(width=0, height=0)
@@ -1412,7 +1420,7 @@ async def main(page: ft.Page):
                     plant.ncsu_html_description, base_url=settings.ncsu_plant_toolbox_base_url
                 )
             elif plant.pm_about:
-                description = plant.pm_about
+                description = bn_utils.clean_pm_plant_description(plant.pm_about)
             elif plant.vasc_distribution:
                 description = plant.vasc_distribution
             elif plant.vasc_identification:

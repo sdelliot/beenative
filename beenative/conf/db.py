@@ -37,7 +37,7 @@ class DatabaseSettings(BaseSettings):
         for p in possible_paths:
             if p.exists():
                 return p
-        return None
+        raise FileNotFoundError(f"Could not locate initial DB: {self.init_db_filename}")
 
     @property
     def sync_init_database_url(self) -> str:

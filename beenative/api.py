@@ -1,5 +1,6 @@
 import re
 import json
+from typing import Any, Dict, List, Tuple
 from pathlib import Path
 from functools import reduce
 from collections import Counter
@@ -21,7 +22,9 @@ class BeeNativeAPI:
     """High-level API to coordinate crawling and processing logic."""
 
     @staticmethod
-    def initialize(nc_source: str, delay: float, get_maps: bool, output_vasc: str, output_ncsu: str, output_ncbg: str):
+    def initialize(
+        nc_source: str, delay: float, get_maps: bool, output_vasc: str, output_ncsu: str, output_ncbg: str
+    ) -> None:
         """
         Runs all initial collecting of data and some initial processing.
         This does not attempt to merge all data sources yet, rather it collects data
@@ -57,11 +60,11 @@ class BeeNativeAPI:
             total_files = len(files)
 
             description = "📸 Getting Maps & Parsing" if get_maps else "📄 Parsing HTML"
-            get_maps = progress.add_task(f"[cyan]{description}...", total=total_files)
+            get_maps_task = progress.add_task(f"[cyan]{description}...", total=total_files)
 
             # Define the callback to advance the bar
-            def update_bar():
-                progress.advance(get_maps)
+            def update_bar() -> None:
+                progress.advance(get_maps_task)
 
             # Execute logic
             vascular_df = vascular_nc_crawler.build_dataframe(
@@ -91,7 +94,7 @@ class BeeNativeAPI:
         ) as progress:
             task = progress.add_task("[green]🌻 Collecting native plant seed data from Prairie Moon...")
 
-            def update_pm_bar(total):
+            def update_pm_bar(total: int) -> None:
                 progress.update(task, advance=1, total=total)
 
             pm_parser = PrairieMoonJSONParser()
@@ -112,7 +115,7 @@ class BeeNativeAPI:
         ) as progress:
             task = progress.add_task(ncsu_print_str, total=len(plant_list))
 
-            def update_ncsu_bar(name):
+            def update_ncsu_bar(name: str) -> None:
                 progress.update(task, advance=1, description=f"[cyan]🌱 Processing: {name}")
 
             results = plant_toolbox_crawler.get_all_plants(plant_list, delay, progress_callback=update_ncsu_bar)
@@ -140,7 +143,7 @@ class BeeNativeAPI:
         ) as progress:
             task = progress.add_task(ncbg_print_str, total=len(plant_list))
 
-            def update_ncbg_bar(name):
+            def update_ncbg_bar(name: str) -> None:
                 progress.update(task, advance=1, description=f"[cyan]⬇️ Downloading: {name}")
 
             ncbg_parser = NCBGParser()
@@ -157,7 +160,7 @@ class BeeNativeAPI:
 
     @staticmethod
     def process_data(
-        input_vasc: str = None, input_ncsu: str = None, input_ncbg: str = None, output_path: str = "merged.parquet"
+        input_vasc: str = "", input_ncsu: str = "", input_ncbg: str = "", output_path: str = "merged.parquet"
     ) -> pl.DataFrame:
         """Processes raw HTML/JSON into a unified structured formats."""
 
@@ -191,7 +194,7 @@ class BeeNativeAPI:
                 task_vasc = progress.add_task("[cyan]🌻 Loading Vascular NC data...", total=len(vasc_files))
 
                 # Define the callback to advance the bar
-                def update_bar():
+                def update_bar() -> None:
                     progress.advance(task_vasc)
 
                 vasc_df = vascular_nc_crawler.build_dataframe(vasc_files, progress_callback=update_bar)
@@ -214,16 +217,18 @@ class BeeNativeAPI:
                     total=len(plant_list),
                 )
 
-                def update_ncsu_bar(name):
+                def update_ncsu_bar(name: str) -> None:
                     progress.update(task_ncsu, advance=1, description=f"[cyan]🐺 Parsing: {name}")
 
-                ncsu_input_df = plant_toolbox_crawler.get_all_plants(plant_list, progress_callback=update_ncsu_bar)
+                ncsu_input_df = plant_toolbox_crawler.get_all_plants(
+                    plant_list, delay=settings.crawl_timout, progress_callback=update_ncsu_bar
+                )
 
             task_ncsu_desc = "[cyan]🐺 Processing NC Plant Toolbox data: "
             task_ncsu = progress.add_task(f"{task_ncsu_desc}", total=len(ncsu_input_df))
 
             # Define the callback to advance the bar
-            def process_ncsu_bar(name):
+            def process_ncsu_bar(name: str) -> None:
                 progress.update(task_ncsu, advance=1, description=f"{task_ncsu_desc} {name}")
 
             ncsu_df = plant_toolbox_crawler.process_all_plants(ncsu_input_df, progress_callback=process_ncsu_bar)
@@ -250,7 +255,7 @@ class BeeNativeAPI:
             task_ncbg = progress.add_task(f"{task_ncbg_desc}", total=len(ncbg_input_df))
 
             # Define the callback to advance the bar
-            def process_ncbg_bar(name):
+            def process_ncbg_bar(name: str) -> None:
                 progress.update(task_ncbg, advance=1, description=f"{task_ncbg_desc} {name}")
 
             ncbg_parser = NCBGParser()
@@ -260,7 +265,7 @@ class BeeNativeAPI:
             pm_parser = PrairieMoonJSONParser()
             task_pm = progress.add_task("[cyan]🌿 Processing Prairie Moon data...")
 
-            def process_pm_bar(total):
+            def process_pm_bar(total: int) -> None:
                 progress.update(task_pm, total=total, advance=1)
 
             pm_df = pm_parser.process_pm_data(progress_callback=process_pm_bar)
@@ -268,7 +273,7 @@ class BeeNativeAPI:
         return BeeNativeAPI().merge(output_path, [pm_df, ncsu_df, vasc_df, ncbg_df])
 
     @staticmethod
-    def merge(output_path: str, data_frame_list: list) -> int:
+    def merge(output_path: str, data_frame_list: list) -> pl.DataFrame:
         """Processes raw dataframes into a unified structured format."""
 
         console = Console()
@@ -317,13 +322,7 @@ class BeeNativeAPI:
         return df_merged
 
     @staticmethod
-    def get_plant_details(name: str):
-        """Stub for future display/UI logic."""
-        # This could eventually query the Parquet file or an API
-        pass
-
-    @staticmethod
-    def create_common_names(df):
+    def create_common_names(df: pl.DataFrame) -> pl.DataFrame:
         # Filter to ground truth: Only NC Vascular Plants
         df_nc_native = df.filter(pl.col("vasc_id").is_not_null())
 
@@ -416,7 +415,7 @@ class BeeNativeAPI:
         return df_final
 
     @staticmethod
-    def merge_wildlife(df):
+    def merge_wildlife(df: pl.DataFrame) -> pl.DataFrame:
         # 1. Standardize and Merge Strings
         df_final = df.with_columns(
             [
@@ -441,7 +440,7 @@ class BeeNativeAPI:
         )
 
         # 2. Convert to Clean Lists
-        def final_tag_cleanup(col):
+        def final_tag_cleanup(col: str) -> pl.Expr:
             return (
                 pl.col(col)
                 .str.replace_all(r'[\[\]"\' ]', " ")
@@ -473,7 +472,7 @@ class BeeNativeAPI:
         return df.group_by("scientific_name").agg(aggs)
 
     @staticmethod
-    def parse_dimensions(df):
+    def parse_dimensions(df: pl.DataFrame) -> pl.DataFrame:
         # 1. Flatten list columns into strings
         df_working = df.with_columns(
             [
@@ -490,7 +489,7 @@ class BeeNativeAPI:
             ]
         )
 
-        def extract_stats(col_expr):
+        def extract_stats(col_expr: pl.Expr) -> Tuple[pl.Expr, pl.Expr]:
             # Normalize and clean markers
             clean = (
                 col_expr.str.to_lowercase()
@@ -577,7 +576,7 @@ class BeeNativeAPI:
         }
 
         # Helper function to process individual rows
-        def normalize_row(row):
+        def normalize_row(row: Dict) -> List[str]:
             ncsu_val = row["ncsu_light"]
             pm_val = row["pm_sun_exposure"]
             results = set()
@@ -617,7 +616,7 @@ class BeeNativeAPI:
         Extracts the primary growth cycle, ignoring 'Woody' and 'Bulb'.
         """
 
-        def parse_lifecycle(data):
+        def parse_lifecycle(data: List | str) -> str:
             found = [""]
             targets = ["Annual", "Biennial", "Perennial"]
             if isinstance(data, list):
@@ -644,7 +643,7 @@ class BeeNativeAPI:
             "Very Dry": "Dry",
         }
 
-        def normalize_moisture(row):
+        def normalize_moisture(row: Dict[str, Any]) -> List[str]:
             ncsu_val = row["ncsu_soil_drainage"]
             pm_val = row["pm_soil_moisture"]
             results = set()
@@ -675,9 +674,9 @@ class BeeNativeAPI:
         )
 
     @staticmethod
-    def extract_precision_months(text):
+    def extract_precision_months(text: str) -> str:
         if not text or text.lower() in ["null", ""]:
-            return {}
+            return json.dumps({})
 
         season_map = {
             "winter": ["Jan", "Feb", "Dec"],
@@ -702,7 +701,7 @@ class BeeNativeAPI:
         month_names = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 
         # Use Counter to track how many sources/phrases confirm a month
-        weights = Counter()
+        weights: Dict = Counter()
 
         # 1. Capture Ranges (Weight = 1)
         range_pattern = r"(\b[a-z]{3,}\b)\s*(?:to|–|-|through|into|until)\s*(\b[a-z]{3,}\b)"
@@ -729,18 +728,18 @@ class BeeNativeAPI:
         return json.dumps(dict(weights))  # Returns e.g., {"May": 2, "Jun": 2, "Apr": 1}
 
     @staticmethod
-    def format_col(col_name, df_final):
+    def format_col(col_name: str, df_final: pl.DataFrame) -> pl.Expr:
         # Check if column exists, then handle list vs string
         if col_name not in df_final.columns:
             return pl.lit("Missing").alias(col_name)
 
         dtype = df_final.schema.get(col_name)
         if isinstance(dtype, pl.List):
-            return pl.col(col_name).list.join(", ")
-        return pl.col(col_name).cast(pl.Utf8).fill_null("null")
+            return pl.col(col_name).list.join(", ").alias(col_name)
+        return pl.col(col_name).cast(pl.Utf8).fill_null("null").alias(col_name)
 
     @staticmethod
-    def update_bloomtime(df):
+    def update_bloomtime(df: pl.DataFrame) -> pl.DataFrame:
         return df.with_columns(
             bloom_months=pl.when(
                 # Check for non-empty lists or non-empty strings in precision columns
@@ -768,7 +767,7 @@ class BeeNativeAPI:
         )
 
     @staticmethod
-    def prepare_for_sqlite(df):
+    def prepare_for_sqlite(df: pl.DataFrame) -> pl.DataFrame:
         # 1. Standard Type Sanitization
         df = df.with_columns(
             [
@@ -781,12 +780,12 @@ class BeeNativeAPI:
         return df
 
     @staticmethod
-    def remove_non_nc_plants(df):
+    def remove_non_nc_plants(df: pl.DataFrame) -> pl.DataFrame:
         df = df.filter((pl.col("vasc_id").cast(pl.String).is_not_null()) & (pl.col("vasc_id").cast(pl.String) != ""))
         return df
 
     @staticmethod
-    def standardize_colors(df):
+    def standardize_colors(df: pl.DataFrame) -> pl.DataFrame:
         COLOR_MAP = {
             "Yellow": ["yellow", "gold", "lemon", "chartreuse", "goldenrod"],
             "White": ["white", "cream", "off-white", "whitish"],
@@ -801,7 +800,7 @@ class BeeNativeAPI:
         }
 
         # Helper to convert List or String to a flat lowercase string for searching
-        def to_searchable_str(col_name):
+        def to_searchable_str(col_name: str) -> pl.Expr:
             dtype = df.schema.get(col_name)
             if isinstance(dtype, pl.List):
                 return pl.col(col_name).list.join(" ").fill_null("")
@@ -834,7 +833,7 @@ class BeeNativeAPI:
         return df_final.drop([f"_is_{m.lower()}" for m in COLOR_MAP.keys()] + ["_color_search"])
 
     @staticmethod
-    def categorize_plants(df):
+    def categorize_plants(df: pl.DataFrame) -> pl.DataFrame:
         WOODY_MAP = {
             "Trees": ["tree", "arborescent", "canopy", "conifer", "pine", "fir", "cedar"],
             "Shrubs": ["shrub", "bush", "multistemmed"],
@@ -846,7 +845,7 @@ class BeeNativeAPI:
         GRASS_KEYWORDS = ["grass", "sedge", "graminoid", "rush"]
         FERN_KEYWORDS = ["fern", "frond", "spore"]
 
-        def to_searchable_str(cols):
+        def to_searchable_str(cols: List[str]) -> pl.Expr:
             return (
                 pl.concat_str(
                     [
@@ -892,7 +891,7 @@ class BeeNativeAPI:
 
         # 3. Apply Herbaceous logic with an "Absolute Override"
         # Even if NCSU says 'Perennial', if it's a Tree, we skip the Forb label.
-        def build_herb_expr(name, keywords, block_completely=False):
+        def build_herb_expr(name: str, keywords: List[str], block_completely: bool = False) -> pl.Expr:
             pattern = "|".join([rf"\b{name.lower()}\b"] + [rf"\b{k}\b" for k in keywords])
             col_alias = f"_is_{name.replace(' & ', '_').lower()}"
 
