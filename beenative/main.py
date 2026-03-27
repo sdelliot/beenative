@@ -1,4 +1,5 @@
 import sys
+from typing import List
 from pathlib import Path
 
 base_path = Path(Path(__file__).resolve()).parent
@@ -174,7 +175,7 @@ def get_plant_icon(categories):
     return ft.Icons.ECO  # Fallback
 
 
-def get_readable_color(raw_color_string):
+def get_readable_color(raw_color_list: List):
     """
     Maps raw botanical color names to readable Flet/Material Design colors.
     """
@@ -194,8 +195,10 @@ def get_readable_color(raw_color_string):
         "maroon": ft.Colors.RED_900,
     }
 
-    # Clean the input (e.g., "Pale Yellow" -> "yellow")
-    clean_input = raw_color_string.lower()
+    clean_input = ""
+    if raw_color_list:
+        # Let's just get the first color
+        clean_input = raw_color_list[0].lower()
 
     for key, color_val in color_map.items():
         if key in clean_input:
@@ -760,7 +763,7 @@ async def main(page: ft.Page):
             peak_idx += 12
 
         prioritized_colors = sorted(flower_colors, key=lambda x: x.lower() == "white")
-        base_color = get_readable_color(prioritized_colors[0])
+        base_color = get_readable_color(prioritized_colors)
 
         month_chips = []
         for i, month_name in enumerate(all_months):
