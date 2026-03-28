@@ -1647,7 +1647,6 @@ async def main(page: ft.Page):
 
             try:
                 real_gallery = await create_image_gallery(plant, is_dark=is_dark)
-                # real_gallery.key = "real_gallery_content"
                 gallery_switcher.content = real_gallery
                 gallery_switcher.update()
                 logger.debug("Cross-fade to real gallery complete")
