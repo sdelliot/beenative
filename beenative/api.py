@@ -1,6 +1,6 @@
 import re
 import json
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Tuple, Union
 from pathlib import Path
 from functools import reduce
 from collections import Counter
@@ -616,15 +616,23 @@ class BeeNativeAPI:
         Extracts the primary growth cycle, ignoring 'Woody' and 'Bulb'.
         """
 
-        def parse_lifecycle(data: List | str) -> str:
-            found = [""]
-            targets = ["Annual", "Biennial", "Perennial"]
-            if isinstance(data, list):
-                found = [x for x in data if x in targets]
-            elif isinstance(data, str):
-                if data in targets:
-                    found = [data]
-            return found[0] if found else ""
+        def parse_lifecycle(data: Union[List, str]) -> str:
+            targets = {"Annual", "Biennial", "Perennial"}
+            mapping = {"Woody": "Perennial", "Bulb": "Perennial"}
+
+            # Standardize data into a list for easier processing
+            items = data if isinstance(data, list) else [data]
+
+            for item in items:
+                # 1. Check if the item is already a valid target
+                if item in targets:
+                    return item
+
+                # 2. Check if the item needs to be mapped (e.g., "Woody" -> "Perennial")
+                if item in mapping:
+                    return mapping[item]
+
+            return ""
 
         return df.with_columns(
             [pl.col("ncsu_life_cycle").map_elements(parse_lifecycle, return_dtype=pl.Utf8).alias("primary_lifecycle")]
