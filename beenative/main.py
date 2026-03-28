@@ -1522,8 +1522,6 @@ async def main(page: ft.Page):
                 switch_in_curve=ft.AnimationCurve.EASE_IN_OUT,
             )
 
-            # logger.debug("Image gallery loaded successfully")
-
             # --- 4. SWAP SHIMMER FOR REAL CONTENT ---
             # Re-attach the real detail_container to the stack
             detail_stack.controls = [detail_container, full_image_overlay]
