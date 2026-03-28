@@ -737,7 +737,7 @@ def generate_plant_pdf(plant: Plant, selected_images: List | None = None) -> Byt
 
     lifecycle = plant.primary_lifecycle
     if not lifecycle:
-        lifecycle = "Not Specified"
+        lifecycle = ["Not Specified"]
 
     height_str = plant.height_str
     if not height_str:
