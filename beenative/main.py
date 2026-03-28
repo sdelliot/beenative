@@ -16,6 +16,7 @@ import platform  # noqa: E402
 import flet as ft  # noqa: E402
 import pdf_gen  # noqa: E402
 import utils.utils as bn_utils  # noqa: E402
+from utils.flet_utils import GalleryShimmer  # noqa: E402
 from settings import settings  # noqa: E402
 from db.engine import db_manager  # noqa: E402
 from sqlalchemy import inspect  # noqa: E402
@@ -345,6 +346,68 @@ def get_flet_caption(info, is_dark=True):
         text_align=ft.TextAlign.CENTER,
     )
 
+async def create_shimmer_placeholder(is_dark: bool):
+    # Colors based on theme
+    base_color = ft.Colors.GREY_900 if is_dark else ft.Colors.GREY_300
+    highlight_color = ft.Colors.GREY_800 if is_dark else ft.Colors.GREY_100
+
+    def create_shimmer_card():
+        return ft.Column([
+            # 1. The Image Box (Matches card + 300px height)
+            ft.Card(
+                content=ft.Container(
+                    width=220,
+                    height=300,
+                    bgcolor=base_color,
+                    border_radius=8,
+                    animate_opacity=ft.Animation(800, "easeInOut"),
+                ),
+                elevation=4,
+            ),
+            # 2. The Caption Box (Matches the 30px bottom padding container)
+            ft.Container(
+                height=20, 
+                width=150, 
+                bgcolor=base_color, 
+                border_radius=4,
+                margin=ft.margin.only(bottom=30)
+            )
+        ], tight=True)
+
+    # Build a row of 3 shimmer items
+    shimmer_items = [create_shimmer_card() for _ in range(3)]
+    
+    # The Placeholder Layout (Matches your 'layout' variable in the real function)
+    placeholder_layout = ft.Column(
+        [
+            ft.Container(
+                content=ft.Row(
+                    shimmer_items,
+                    scroll=ft.ScrollMode.HIDDEN,
+                    spacing=20,
+                ),
+                padding=ft.Padding.only(bottom=10),
+            ),
+            # The Chip Placeholder
+            ft.Container(
+                width=180,
+                height=40,
+                bgcolor=base_color,
+                border_radius=20,
+            ),
+        ]
+    )
+
+    # Start the "Pulse" animation for all boxes
+    async def pulse():
+        while True:
+            for item in shimmer_items:
+                # Target the Container inside the Card
+                item.controls[0].content.opacity = 0.4 if item.controls[0].content.opacity == 1.0 else 1.0
+            placeholder_layout.update()
+            await asyncio.sleep(0.8)
+
+    return placeholder_layout, pulse
 
 def get_loading_overlay(message="Processing...", is_dark=True):
     # Adaptive colors for the shimmer card
@@ -1511,14 +1574,19 @@ async def main(page: ft.Page):
             wildlife_data = plant.wildlife_attracts
             resistance_data = plant.plant_resistances
 
-            try:
-                logger.debug("Creating Image Gallery object")
-                gallery = await create_image_gallery(plant, is_dark=is_dark)
-            except Exception:
-                logger.exception("Gallery load failed")
-                gallery = ft.Container(width=0, height=0)  # Provide empty container so the rest of the UI loads
 
-            logger.debug("Image gallery loaded successfully")
+            logger.debug("Creating Image Gallery placeholder")
+            gallery_placeholder = GalleryShimmer(is_dark=is_dark)
+            gallery_switcher = ft.AnimatedSwitcher(
+                content=gallery_placeholder,
+                transition=ft.AnimatedSwitcherTransition.FADE,
+                duration=500, # 500ms fade duration
+                reverse_duration=500,
+                switch_in_curve=ft.AnimationCurve.EASE_IN_OUT,
+            )
+
+            # logger.debug("Image gallery loaded successfully")
+
             # --- 4. SWAP SHIMMER FOR REAL CONTENT ---
             # Re-attach the real detail_container to the stack
             detail_stack.controls = [detail_container, full_image_overlay]
@@ -1592,7 +1660,7 @@ async def main(page: ft.Page):
                             else description,
                         ]
                     ),
-                    gallery,
+                    gallery_switcher,
                     ft.Divider(),
                     ft.Row(
                         [
@@ -1621,7 +1689,7 @@ async def main(page: ft.Page):
                             ft.OutlinedButton(
                                 "Export",
                                 icon=ft.Icons.PICTURE_AS_PDF,
-                                on_click=lambda _: page.run_task(handle_pdf_export, plant, detail_container, gallery),
+                                on_click=lambda _: page.run_task(handle_pdf_export, plant, detail_container, gallery_switcher.content),
                                 tooltip="Save results as PDF",
                             ),
                         ],
@@ -1633,13 +1701,19 @@ async def main(page: ft.Page):
 
             # detail_container.height = page.height * 0.85
             # detail_container.width = page.width * 0.85,
-            logger.debug("1450 - before setting controls")
             bs.open = True
-            logger.debug("1454 After open")
             bs.update()
-            logger.debug("1456 after bs.update")
             page.update()
-            logger.debug("1458 after page.update")
+            page.run_task(gallery_placeholder.animate_shimmer)
+
+            try:
+                real_gallery = await create_image_gallery(plant, is_dark=is_dark)
+                # real_gallery.key = "real_gallery_content"
+                gallery_switcher.content = real_gallery
+                gallery_switcher.update()
+                logger.debug("Cross-fade to real gallery complete")
+            except Exception as e:
+                logger.debug("The gallery placeholder hasn't loaded or is unavailable, we can continue")
         except Exception as e:
             logger.exception("Error showing details")
             detail_container.controls.clear()
