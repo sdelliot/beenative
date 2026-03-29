@@ -20,7 +20,7 @@ from db.engine import db_manager  # noqa: E402
 from sqlalchemy import inspect  # noqa: E402
 from models.plant import Plant  # noqa: E402
 from db.repository import search_plants  # noqa: E402
-from utils.flet_utils import (  # noqa: E402
+from utils.flet import (  # noqa: E402
     SUN_DATA,
     WILDLIFE_MAP,
     MOISTURE_DATA,
