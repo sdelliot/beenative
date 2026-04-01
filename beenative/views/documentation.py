@@ -73,7 +73,7 @@ def open_documentation(page: ft.Page):
             scroll=ft.ScrollMode.ADAPTIVE,
         ),
         padding=20,
-        height=page.height * 0.8,
+        height=page.height * 0.9,
     )
 
     docs_sheet = ft.BottomSheet(
