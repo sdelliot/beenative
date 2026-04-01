@@ -71,7 +71,7 @@ class GalleryShimmer(ft.Column):
 
     async def animate_shimmer(self):
         """The loop that handles the pulsing effect."""
-        while self.page and getattr(self, "running", False):
+        while getattr(self, "running", False) and self.page:
             # Toggle between base and highlight
             new_color = self.highlight_color if self.controls[1].bgcolor == self.base_color else self.base_color
 

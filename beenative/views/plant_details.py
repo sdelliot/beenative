@@ -954,7 +954,6 @@ class PlantDetails:
             self.bs.open = True
             self.bs.update()
             self.page.update()
-            self.page.run_task(gallery_placeholder.animate_shimmer)
 
             try:
                 real_gallery = await self.create_image_gallery(plant)

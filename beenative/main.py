@@ -43,7 +43,7 @@ def setup_production_logging(app_name="com.beenative.app"):
 
     # Configure the logging module
     logging.basicConfig(
-        level=logging.DEBUG,
+        level=logging.INFO,
         format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
         handlers=[
             logging.FileHandler(log_file, encoding="utf-8", delay=True),
@@ -52,7 +52,13 @@ def setup_production_logging(app_name="com.beenative.app"):
     )
 
     # Redirect Flet and other library logs to our file
-    logging.getLogger("flet").setLevel(logging.DEBUG)
+    logging.getLogger("flet").setLevel(logging.WARNING)
+    logging.getLogger("flet_core").setLevel(logging.WARNING)
+    logging.getLogger("flet_controls").setLevel(logging.WARNING)
+    logging.getLogger("flet_transport").setLevel(logging.WARNING)
+    logging.getLogger("asyncio").setLevel(logging.WARNING)
+    logging.getLogger("aiosqlite").setLevel(logging.WARNING)
+    logging.getLogger("urllib3.connectionpool").setLevel(logging.WARNING)
 
     return log_file
 
