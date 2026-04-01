@@ -32,6 +32,16 @@ class GalleryShimmer(ft.Column):
             ),
         ]
 
+    def did_mount(self):
+        """Runs automatically when the control is added to the page."""
+        # Create the task for the animation loop
+        self.running = True
+        self.page.run_task(self.animate_shimmer)
+
+    def will_unmount(self):
+        """Runs automatically when the control is removed."""
+        self.running = False
+
     def _make_shimmer_item(self):
         """Creates a single card + caption skeleton."""
         return ft.Column(
@@ -61,7 +71,7 @@ class GalleryShimmer(ft.Column):
 
     async def animate_shimmer(self):
         """The loop that handles the pulsing effect."""
-        while self.page:
+        while self.page and getattr(self, "running", False):
             # Toggle between base and highlight
             new_color = self.highlight_color if self.controls[1].bgcolor == self.base_color else self.base_color
 
@@ -301,3 +311,10 @@ def get_loading_overlay(message="Processing...", is_dark=True):
         alignment=ft.Alignment.CENTER,
         bgcolor=card_bg,
     )
+
+# 2. Update the URL launcher (Fixes launch_url deprecation and RuntimeWarning)
+async def open_url(url):
+    if url:
+        # Newer Flet uses page.launch_url as a coroutine
+        await ft.UrlLauncher().launch_url(url)
+
