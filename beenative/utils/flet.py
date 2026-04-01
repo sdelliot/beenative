@@ -312,9 +312,9 @@ def get_loading_overlay(message="Processing...", is_dark=True):
         bgcolor=card_bg,
     )
 
+
 # 2. Update the URL launcher (Fixes launch_url deprecation and RuntimeWarning)
 async def open_url(url):
     if url:
         # Newer Flet uses page.launch_url as a coroutine
         await ft.UrlLauncher().launch_url(url)
-

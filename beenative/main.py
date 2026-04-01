@@ -6,34 +6,14 @@ if base_path not in sys.path:
     sys.path.insert(0, base_path)
 
 import os  # noqa: E402
-import json  # noqa: E402
-import math  # noqa: E402
-import asyncio  # noqa: E402
 import logging  # noqa: E402
 import platform  # noqa: E402
 
 import flet as ft  # noqa: E402
-import pdf_gen  # noqa: E402
-import utils.utils as bn_utils  # noqa: E402
-from settings import settings  # noqa: E402
 from db.engine import db_manager  # noqa: E402
-from sqlalchemy import inspect  # noqa: E402
-from models.plant import Plant  # noqa: E402
-from db.repository import search_plants  # noqa: E402
-from utils.flet import (  # noqa: E402
-    SUN_DATA,
-    WILDLIFE_MAP,
-    MOISTURE_DATA,
-    RESISTANCE_MAP,
-    GalleryShimmer,
-    get_plant_icon,
-    get_flet_caption,
-    get_readable_color,
-    get_loading_overlay,
-)
-from views.documentation import open_documentation  # noqa: E402
 from views.search import SearchPage  # noqa: E402
-from views.plant_details import PlantDetails  # noqa: E402
+from views.documentation import open_documentation  # noqa: E402
+
 
 def get_log_path(app_name):
     system = platform.system()

@@ -1,35 +1,28 @@
-import sys
-from pathlib import Path
-
 import os  # noqa: E402
 import json  # noqa: E402
 import math  # noqa: E402
 import asyncio  # noqa: E402
 import logging  # noqa: E402
-import platform  # noqa: E402
+from pathlib import Path
 
 import flet as ft  # noqa: E402
 import pdf_gen  # noqa: E402
 import utils.utils as bn_utils  # noqa: E402
 from settings import settings  # noqa: E402
-from db.engine import db_manager  # noqa: E402
-from sqlalchemy import inspect  # noqa: E402
-from models.plant import Plant  # noqa: E402
-from db.repository import search_plants  # noqa: E402
 from utils.flet import (  # noqa: E402
     SUN_DATA,
     WILDLIFE_MAP,
     MOISTURE_DATA,
     RESISTANCE_MAP,
     GalleryShimmer,
-    get_plant_icon,
     open_url,
     get_flet_caption,
     get_readable_color,
     get_loading_overlay,
 )
-from views.documentation import open_documentation  # noqa: E402
+from models.plant import Plant  # noqa: E402
 from views.raw_details import RawPlantSheet  # noqa: E402
+
 
 class PlantDetails:
     def __init__(self, page: ft.Page, logger: logging.Logger):
@@ -47,9 +40,12 @@ class PlantDetails:
             on_dismiss=self.close_bs,
         )
 
-        self.is_dark=True if page.theme_mode == ft.ThemeMode.DARK or (
-            page.platform_brightness == ft.Brightness.DARK if page.theme_mode == ft.ThemeMode.SYSTEM else False
-        ) else False
+        self.is_dark = (
+            True
+            if page.theme_mode == ft.ThemeMode.DARK
+            or (page.platform_brightness == ft.Brightness.DARK if page.theme_mode == ft.ThemeMode.SYSTEM else False)
+            else False
+        )
 
         self.full_img_view = ft.Container(
             content=ft.Stack(
@@ -110,7 +106,7 @@ class PlantDetails:
             visible=False,
             # expand=True,
         )
-        
+
         self.logger.debug("Define bottom sheet detailed stack row")
         # 3. Update the BottomSheet content
         self.bs = ft.BottomSheet(
@@ -131,7 +127,7 @@ class PlantDetails:
         self.detail_stack.controls = [self.detail_container, self.full_image_overlay]
 
         self.page.overlay.append(self.bs)
-    
+
     def close_bs(self, e):
         self.bs.open = False
         self.bs.update()
@@ -428,9 +424,6 @@ class PlantDetails:
             tight=True,
         )
 
-
-
-
     def get_attribute_chips(self, json_data, icon_name, label, attr_type="wildlife"):
         """
         attr_type: "wildlife" or "resistance"
@@ -667,10 +660,6 @@ class PlantDetails:
         detail_container.controls.remove(export_status)
         self.page.update()
 
-
-
-
-
     async def handle_copy_bs(self, text, detail_container):
         # Sets the text to the user's clipboard
         await ft.Clipboard().set(text)
@@ -708,12 +697,11 @@ class PlantDetails:
         self.full_image_overlay.visible = True
         self.detail_stack.update()
 
-
     def hide_full_image(self):
         self.full_img_view.visible = False
         # full_img_view.opacity = 0
         self.page.update()
-    
+
     def fact_row(self, icon, label, value):
         return ft.Row(
             [
@@ -980,4 +968,3 @@ class PlantDetails:
             self.detail_container.controls.clear()
             self.detail_container.controls.append(ft.Text(f"Failed to load details: {e}", color="red"))
             self.bs.update()
-

@@ -1,36 +1,13 @@
-import sys
-from pathlib import Path
-from venv import logger
-
-import os  # noqa: E402
-import json  # noqa: E402
-import math  # noqa: E402
 import asyncio  # noqa: E402
 import logging  # noqa: E402
-import platform  # noqa: E402
 
 import flet as ft  # noqa: E402
-import pdf_gen  # noqa: E402
-import utils.utils as bn_utils  # noqa: E402
-from settings import settings  # noqa: E402
 from db.engine import db_manager  # noqa: E402
-from sqlalchemy import inspect  # noqa: E402
-from models.plant import Plant  # noqa: E402
-from db.repository import search_plants  # noqa: E402
 from utils.flet import (  # noqa: E402
-    SUN_DATA,
-    WILDLIFE_MAP,
-    MOISTURE_DATA,
-    RESISTANCE_MAP,
-    GalleryShimmer,
     get_plant_icon,
-    get_flet_caption,
-    get_readable_color,
-    get_loading_overlay,
 )
-from views.documentation import open_documentation  # noqa: E402
+from db.repository import search_plants  # noqa: E402
 from views.plant_details import PlantDetails
-
 
 
 class SearchPage:
@@ -56,7 +33,7 @@ class SearchPage:
         self.search_task = None
         self.plant_details = PlantDetails(self.page, self.logger)
 
-            # --- UI COMPONENTS ---
+        # --- UI COMPONENTS ---
         self.color_map = {
             "Yellow": ft.Colors.AMBER_400,
             "White": ft.Colors.GREY_300,
@@ -69,7 +46,6 @@ class SearchPage:
             "Brown": ft.Colors.BROWN_600,
             "Grey": ft.Colors.GREY_700,
         }
-
 
     def setup_ui(self):
         self.search_input = ft.TextField(
@@ -119,7 +95,6 @@ class SearchPage:
                 for name, val in self.color_map.items()
             ],
         )
-
 
         self.page.add(
             # ft.Text("BeeNative Finder", size=32, weight="bold"),
@@ -241,7 +216,6 @@ class SearchPage:
             self.page.update()
 
         self.search_task = asyncio.create_task(debounced_search())
-
 
     async def toggle_changed(self, e, key):
         # 1. Multi-select logic for Categories
