@@ -1,12 +1,12 @@
-import asyncio  # noqa: E402
-import logging  # noqa: E402
+import asyncio
+import logging
 
-import flet as ft  # noqa: E402
-from db.engine import db_manager  # noqa: E402
-from utils.flet import (  # noqa: E402
+import flet as ft
+from db.engine import db_manager
+from utils.flet import (
     get_plant_icon,
 )
-from db.repository import search_plants  # noqa: E402
+from db.repository import search_plants
 from views.plant_details import PlantDetails
 
 
