@@ -1,15 +1,15 @@
-import os  # noqa: E402
-import json  # noqa: E402
-import math  # noqa: E402
-import asyncio  # noqa: E402
-import logging  # noqa: E402
+import os
+import json
+import math
+import asyncio
+import logging
 from pathlib import Path
 
-import flet as ft  # noqa: E402
-import pdf_gen  # noqa: E402
-import utils.utils as bn_utils  # noqa: E402
-from settings import settings  # noqa: E402
-from utils.flet import (  # noqa: E402
+import flet as ft
+import pdf_gen
+import utils.utils as bn_utils
+from settings import settings
+from utils.flet import (
     SUN_DATA,
     WILDLIFE_MAP,
     MOISTURE_DATA,
@@ -20,8 +20,8 @@ from utils.flet import (  # noqa: E402
     get_readable_color,
     get_loading_overlay,
 )
-from models.plant import Plant  # noqa: E402
-from views.raw_details import RawPlantSheet  # noqa: E402
+from models.plant import Plant
+from views.raw_details import RawPlantSheet
 
 
 class PlantDetails:

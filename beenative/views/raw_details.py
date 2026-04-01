@@ -1,15 +1,7 @@
-import sys
-from pathlib import Path
-
-base_path = Path(Path(__file__).resolve()).parent
-if base_path not in sys.path:
-    sys.path.insert(0, base_path)
-
-
-import flet as ft  # noqa: E402
-import utils.utils as bn_utils  # noqa: E402
-from sqlalchemy import inspect  # noqa: E402
-from models.plant import Plant  # noqa: E402
+import flet as ft
+import utils.utils as bn_utils
+from sqlalchemy import inspect
+from models.plant import Plant
 
 
 class RawPlantSheet:
