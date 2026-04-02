@@ -96,20 +96,20 @@ class SearchPage:
             ],
         )
 
-        self.page.add(
-            # ft.Text("BeeNative Finder", size=32, weight="bold"),
-            ft.Row([self.search_input]),
-            # ft.Text("Conditions:", size=14, weight="bold"),
-            # ft.Row([sun_row, ft.Chip(label=ft.Text("Deer Resistant"), on_select=handle_click("deer_resistant"))]),
-            # ft.Text("Wildlife:", size=14, weight="bold"),
-            # wildlife_row,
-            filter_row,
-            ft.Text("Bloom Color:", size=14, weight="bold"),
-            self.color_row,
-            ft.Divider(),
-            self.results_grid,
+        content = ft.Column(
+            controls=[
+                ft.Row([self.search_input]),
+                filter_row,
+                ft.Text("Bloom Color:", size=14, weight="bold"),
+                self.color_row,
+                ft.Divider(),
+                self.results_grid,
+            ],
+            scroll=ft.ScrollMode.AUTO,
+            expand=True,
         )
-        self.page.update()
+
+        return content
 
     async def output_search(self, offset=0, limit=20):
         # 1. Get text from input

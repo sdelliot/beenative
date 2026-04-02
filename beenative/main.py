@@ -77,38 +77,68 @@ async def main(page: ft.Page):
     title = "BeeNative Explorer"
     page.title = title
     page.padding = 20
-    logger.info("Starting up %s", title)
-
-    # Set initial mode
     page.theme_mode = ft.ThemeMode.DARK
 
-    def toggle_theme(e):
-        if page.theme_mode == ft.ThemeMode.DARK:
-            page.theme_mode = ft.ThemeMode.LIGHT
-            theme_icon.icon = ft.Icons.DARK_MODE
-        else:
-            page.theme_mode = ft.ThemeMode.DARK
-            theme_icon.icon = ft.Icons.LIGHT_MODE
+    main_content = ft.Container(expand=True)
+
+    async def handle_change(e: ft.Event[ft.NavigationDrawer]):
+
+        await page.close_drawer()
+
+        index = e.control.selected_index
+        logger.info("Navigating to index: %s", index)
+
+        # Swap the content based on index
+        if index == 0:
+            main_content.content = SearchPage(page, logger).setup_ui()
+        elif index == 1:
+            main_content.content = ft.Text("My Garden", size=30)
 
         page.update()
 
-    theme_icon = ft.IconButton(icon=ft.Icons.LIGHT_MODE, on_click=toggle_theme, tooltip="Toggle Light/Dark Mode")
+    def toggle_theme(e):
+        page.theme_mode = ft.ThemeMode.LIGHT if page.theme_mode == ft.ThemeMode.DARK else ft.ThemeMode.DARK
+        theme_icon.icon = ft.Icons.DARK_MODE if page.theme_mode == ft.ThemeMode.LIGHT else ft.Icons.LIGHT_MODE
+        page.update()
 
-    doc_icon = ft.IconButton(
-        icon=ft.Icons.HELP_OUTLINE, tooltip="Documentation", on_click=lambda _: open_documentation(page)
+    async def open_drawer(e):
+        await page.show_drawer()
+
+    page.drawer = ft.NavigationDrawer(
+        on_change=handle_change,
+        controls=[
+            ft.Container(height=12),  # Top padding
+            ft.NavigationDrawerDestination(
+                label="Find a Plant",
+                icon=ft.Icons.SEARCH_OUTLINED,
+                selected_icon=ft.Icons.SEARCH,
+            ),
+        ],
     )
 
+    theme_icon = ft.IconButton(icon=ft.Icons.LIGHT_MODE, on_click=lambda e: toggle_theme(e), tooltip="Toggle Light/Dark Mode")
+
     page.appbar = ft.AppBar(
+        leading=ft.IconButton(
+            icon=ft.Icons.MENU,
+            on_click=open_drawer,
+        ),
         title=ft.Text("BeeNative NC Plant Database"),
         actions=[
-            doc_icon,
+            ft.IconButton(
+                ft.Icons.HELP_OUTLINE,
+                tooltip="Documentation",
+                on_click=lambda _: open_documentation(page)
+            ),
             theme_icon,
         ],
         bgcolor=ft.Colors.SURFACE_CONTAINER,
     )
 
-    search_page = SearchPage(page, logger)
-    search_page.setup_ui()
+    main_content.content = SearchPage(page, logger).setup_ui()
+
+    page.add(main_content)
+    page.update()
 
 
 if __name__ == "__main__":
