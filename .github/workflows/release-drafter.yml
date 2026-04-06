@@ -28,7 +28,7 @@ jobs:
     steps:
       - name: Draft Release Notes
         id: draft_release
-        uses: release-drafter/release-drafter@b1476f6e6eb133afa41ed8589daba6dc69b4d3f5
+        uses: release-drafter/release-drafter@139054aeaa9adc52ab36ddf67437541f039b88e2
         with:
           publish: ${{ steps.check-version.outputs.tag != '' }}
           tag: ${{ steps.check-version.outputs.tag }}
