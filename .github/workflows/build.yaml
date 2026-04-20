@@ -91,7 +91,7 @@ jobs:
         run: git lfs checkout
 
       - name: Setup uv
-        uses: astral-sh/setup-uv@v7
+        uses: astral-sh/setup-uv@v8.0.0
 
       - name: Install Dependencies
         run: make install
@@ -152,6 +152,6 @@ jobs:
         run: ls -R ./dist
 
       - name: Upload to GitHub Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           files: ./dist/*.zip
