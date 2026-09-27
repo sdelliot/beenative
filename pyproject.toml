@@ -1,20 +1,3 @@
-[build-system]
-requires = ["setuptools>=67.0", "setuptools_scm[toml]>=7.1"]
-build-backend = "setuptools.build_meta"
-
-[tool.setuptools.dynamic]
-readme = { file = ["README.md"] }
-
-[tool.setuptools.package-data]
-beenative = ["py.typed"]
-
-[tool.setuptools_scm]
-fallback_version = "0.0.0-dev"
-write_to = "beenative/_version.py"
-
-[tool.setuptools.packages.find]
-exclude = ["tests*", "docs*"]
-
 [project]
 name = "beenative"
 description = "An application to provide information about native plants."
@@ -42,6 +25,14 @@ dependencies = [
 ]
 dynamic = ["version"]
 
+[project.scripts]
+beenative = "beenative.cli:app"
+
+[project.optional-dependencies]
+beenative = [
+  "beenative",
+]
+
 [dependency-groups]
 dev = [
   "build",
@@ -65,21 +56,77 @@ dev = [
   "vulture>=2.14",
 ]
 
-[project.scripts]
-beenative = "beenative.cli:app"
+[build-system]
+requires = ["setuptools>=67.0", "setuptools_scm[toml]>=7.1"]
+build-backend = "setuptools.build_meta"
 
-[project.optional-dependencies]
-beenative = [
-  "beenative",
+[tool.coverage.run]
+concurrency = ["thread", "greenlet"]
+omit = [
+  "./beenative/_version.py",
+  "./beenative/__init__.py",
+  "./tests/*",
 ]
+
+[tool.flet]
+org = "com.beenative.app"
+product = "BeeNative"
+company = "BeeNative"
+copyright = "Copyright © 2026 BeeNative Team"
+description = "Native Plant Finder for North Carolina"
+build_number = 1
+
+[tool.flet.app]
+path = "beenative"
+module = "main"
+# Keep your window clean until setup is done
+# hide_window_on_start = false
+
+[tool.flet.app.boot_screen]
+show = true
+message = "Preparing environment..."
+
+[tool.flet.app.startup_screen]
+show = true
+message = "Starting up the app…"
+
+[tool.flet.macos]
+source_packages = ["pillow"]
+
+[tool.flet.compile]
+app = true
+packages = true
+
+[tool.flet.cleanup]
+app = true
+packages = true
+package_files = ["**/*.pyi"]
+
+[tool.flet.splash]
+color = "#F4F7F5"
+dark_color = "#121A13"
+
+[tool.mypy]
+check_untyped_defs = true
+disallow_incomplete_defs = true
+disallow_untyped_calls = false
+disallow_untyped_defs = true
+no_implicit_optional = true
+
+plugins = ["pydantic.mypy"]
+strict_optional = true
+warn_return_any = true
+warn_unused_ignores = true
+
+ignore_missing_imports = true
+
+exclude = ['.*/db/.*\.py', '.*/models/.*\.py', '.*/utils/.*\.py', "main.py", "cli.py", ".*_crawler.py", "api.py"]
+
+[tool.pytest.ini_options]
+asyncio_default_fixture_loop_scope = "function"
 
 [tool.ruff]
-exclude = [
-  ".venv",
-  "./beenative/_version.py",
-  "./beenative/db/env.py",
-  "testpad.ipynb"
-]
+exclude = [".venv", "./beenative/_version.py", "./beenative/db/env.py", "testpad.ipynb"]
 line-length = 120
 indent-width = 4
 
@@ -138,6 +185,16 @@ preview = false
 fixable = ["ALL"]
 unfixable = []
 
+[tool.ruff.lint.pycodestyle]
+max-doc-length = 120
+max-line-length = 120
+
+[tool.ruff.lint.isort]
+length-sort = true
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
 [tool.ruff.format]
 # Like Black, use double quotes for strings.
 quote-style = "double"
@@ -160,91 +217,21 @@ docstring-code-format = false
 # enabled.
 docstring-code-line-length = "dynamic"
 
-[tool.ruff.lint.pycodestyle]
-max-doc-length = 120
-max-line-length = 120
+[tool.setuptools.dynamic]
+readme = { file = ["README.md"] }
 
-[tool.ruff.lint.isort]
-length-sort = true
+[tool.setuptools.package-data]
+beenative = ["py.typed"]
 
-[tool.ruff.lint.pydocstyle]
-convention = "google"
+[tool.setuptools.packages.find]
+exclude = ["tests*", "docs*"]
 
-[tool.coverage.run]
-concurrency = ["thread", "greenlet"]
-omit = [
-  "./beenative/_version.py",
-  "./beenative/__init__.py",
-  "./tests/*",
-]
-
-[tool.pytest.ini_options]
-asyncio_default_fixture_loop_scope = "function"
-
-[tool.mypy]
-check_untyped_defs = true
-disallow_incomplete_defs = true
-disallow_untyped_calls = false
-disallow_untyped_defs = true
-no_implicit_optional = true
-
-plugins = ["pydantic.mypy"]
-strict_optional = true
-warn_return_any = true
-warn_unused_ignores = true
-
-ignore_missing_imports = true
-
-exclude = [
-  '.*/db/.*\.py',
-  '.*/models/.*\.py',
-  '.*/utils/.*\.py',
-  "main.py",
-  "cli.py",
-  ".*_crawler.py",
-  "api.py"
-]
+[tool.setuptools_scm]
+fallback_version = "0.0.0-dev"
+write_to = "beenative/_version.py"
 
 [tool.uv]
 exclude-newer = "1 week"
 
 [tool.uv.sources]
 beenative = { workspace = true }
-
-[tool.flet]
-org = "com.beenative.app"
-product = "BeeNative"
-company = "BeeNative"
-copyright = "Copyright © 2026 BeeNative Team"
-description = "Native Plant Finder for North Carolina"
-build_number = 1
-
-[tool.flet.app]
-path = "beenative"
-module = "main"
-# Keep your window clean until setup is done
-# hide_window_on_start = false
-
-[tool.flet.app.boot_screen]
-show = true
-message = "Preparing environment..."
-
-[tool.flet.app.startup_screen]
-show = true
-message = "Starting up the app…"
-
-[tool.flet.macos]
-source_packages = ["pillow"]
-
-[tool.flet.compile]
-app = true
-packages = true
-
-[tool.flet.cleanup]
-app = true
-packages = true
-package_files = ["**/*.pyi"]
-
-[tool.flet.splash]
-color = "#F4F7F5"
-dark_color = "#121A13"

@@ -325,7 +325,7 @@ def _parse_html_to_flet(element, base_url=""):
                 if child_flet:
                     list_item_container.controls.append(child_flet)
 
-        return ft.Container(content=list_item_container, padding=ft.padding.only(left=20))
+        return ft.Container(content=list_item_container, padding=ft.Padding.only(left=20))
     # Span Tag
     elif element.name == _HTML.Tags.SPAN:
         span_style = _get_style(element)

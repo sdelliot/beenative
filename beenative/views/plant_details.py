@@ -7,6 +7,7 @@ from pathlib import Path
 
 import flet as ft
 import pdf_gen
+import requests
 import utils.utils as bn_utils
 from settings import settings
 from utils.flet import (
@@ -759,6 +760,16 @@ class PlantDetails:
                 if full_system_path.exists():
                     # Flet always treats the assets_dir as the web root "/"
                     img_src = f"/{img_path_raw}"
+                else:
+                    # If we do not have the image "on disk" we should get the image
+                    # with the correct requests headers
+                    try:
+                        response = requests.get(img_src, headers=settings.vascular_nc_headers_get)
+                        response.raise_for_status()
+                        img_src = response.content
+                    except Exception as e:
+                        print(e)
+                        self.logger.warning("Error fetching image: %s", e)
 
             header = ft.Row(
                 [

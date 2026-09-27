@@ -123,6 +123,7 @@ from typing import Dict
 
 logger = getLogger(__name__)
 
+
 def process_data(data: Dict[str, str]) -> None:
     logger.debug("Starting data processing")
     try:
@@ -176,6 +177,7 @@ except FileNotFoundError:
 from dataclasses import dataclass
 from typing import Dict, List
 
+
 # Good: Proper typing
 @dataclass
 class User:
@@ -183,11 +185,13 @@ class User:
     email: str
     age: int | None = None
 
+
 def process_users(users: List[User], tags: Dict[str, str]) -> List[str]:
     results: List[str] = []
     for user in users:
         results.append(user.name)
     return results
+
 
 # Bad: Using dict instead of dataclass (and using native types)
 def process_users_bad(users: list[dict], config: dict) -> list:
@@ -207,6 +211,7 @@ def process_users_bad(users: list[dict], config: dict) -> list:
 from pydantic import Field, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=".env",
@@ -217,21 +222,13 @@ class Settings(BaseSettings):
     project_name: str = Field(default="MyProject", description="Project name")
 
     # Good: Using SecretStr for sensitive data
-    database_password: SecretStr = Field(
-        description="Database password"
-    )
+    database_password: SecretStr = Field(description="Database password")
 
     # Good: Optional field defaults to None
-    api_key: str | None = Field(
-        default=None,
-        description="Optional API key for external service"
-    )
+    api_key: str | None = Field(default=None, description="Optional API key for external service")
 
     # Good: Using Field with description
-    max_connections: int = Field(
-        default=10,
-        description="Maximum number of database connections"
-    )
+    max_connections: int = Field(default=10, description="Maximum number of database connections")
 ```
 
 ### FastAPI
@@ -249,9 +246,11 @@ from pydantic import BaseModel, Field
 
 router = APIRouter()
 
+
 class PostCreate(BaseModel):
     title: str = Field(min_length=1, max_length=200, description="Post title")
     content: str = Field(min_length=1, description="Post content")
+
 
 class PostRead(BaseModel):
     id: UUID
@@ -259,22 +258,27 @@ class PostRead(BaseModel):
     content: str
     created_at: str
 
+
 class PostUpdate(BaseModel):
     title: str | None = Field(default=None, max_length=200)
     content: str | None = None
+
 
 @router.post("/posts", response_model=PostRead, status_code=status.HTTP_201_CREATED)
 async def create_post(post: PostCreate) -> PostRead:
     # Use different model for input (PostCreate) and output (PostRead)
     pass
 
+
 @router.get("/posts/{post_id}", response_model=PostRead)
 async def get_post(post_id: UUID) -> PostRead:
     pass
 
+
 @router.put("/posts/{post_id}", response_model=PostRead)
 async def update_post(post_id: UUID, post: PostUpdate) -> PostRead:
     pass
+
 
 @router.delete("/posts/{post_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_post(post_id: UUID) -> None:
@@ -298,6 +302,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 
 from beenative.models.base import Base
 
+
 class User(Base):
     __tablename__ = "users"
 
@@ -306,17 +311,13 @@ class User(Base):
     name: Mapped[str]
     is_active: Mapped[bool] = mapped_column(default=True)
 
+
 # Good: Async query with explicit and_()
 async def get_active_user(session: AsyncSession, email: str, name: str) -> User | None:
-    stmt = select(User).where(
-        and_(
-            User.email == email,
-            User.name == name,
-            User.is_active == True
-        )
-    )
+    stmt = select(User).where(and_(User.email == email, User.name == name, User.is_active == True))
     result = await session.execute(stmt)
     return result.scalar_one_or_none()
+
 
 # Bad: Implicit and (avoid this)
 async def get_user_bad(session: AsyncSession, email: str, name: str) -> User | None:
@@ -339,6 +340,7 @@ from beenative.cli import syncify
 
 app = typer.Typer()
 
+
 @app.command()
 def process(
     input_file: Annotated[str, typer.Argument(help="Path to input file")],
@@ -351,6 +353,7 @@ def process(
     # Processing logic here
     typer.echo("Done!")
 
+
 @app.command()
 @syncify
 async def fetch(
@@ -359,6 +362,7 @@ async def fetch(
     """Fetch data from a URL asynchronously."""
     # Async operations here (database queries, HTTP requests, etc.)
     typer.echo(f"Fetching from {url}")
+
 
 if __name__ == "__main__":
     app()
