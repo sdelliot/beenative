@@ -5,9 +5,9 @@ import asyncio
 import logging
 from pathlib import Path
 
-import requests
 import flet as ft
 import pdf_gen
+import requests
 import utils.utils as bn_utils
 from settings import settings
 from utils.flet import (
