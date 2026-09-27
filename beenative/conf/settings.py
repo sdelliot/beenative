@@ -20,6 +20,7 @@ class Settings(DatabaseSettings):
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
         "Upgrade-Insecure-Requests": "1",
     }
+    vascular_nc_headers_get: dict = requests_headers | {"Referer": "https://auth1.dpr.ncparks.gov/flora/"}
     vascular_nc_headers: dict = requests_headers | {"Content-Type": "application/x-www-form-urlencoded"}
     prairie_moon_headers: dict = requests_headers | {
         "accept": "*/*",

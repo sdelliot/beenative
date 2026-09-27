@@ -8,6 +8,7 @@ from datetime import datetime
 
 import segno
 import requests
+from beenative.settings import settings
 from models.plant import Plant
 from reportlab.lib import colors
 from svglib.svglib import svg2rlg
@@ -388,7 +389,7 @@ def create_justified_photo_gallery(
         url = img_data.get("thumbnail_url") or img_data.get("original_url")
         caption_xml = get_pdf_caption(img_data)
         try:
-            resp = requests.get(url, timeout=10)
+            resp = requests.get(url, headers=settings.vascular_nc_headers_get, timeout=10)
             img = Image(BytesIO(resp.content))
             aspect = img.imageWidth / float(img.imageHeight)
             processed_items.append({"obj": img, "aspect": aspect, "caption": caption_xml})
@@ -856,12 +857,12 @@ def generate_plant_pdf(plant: Plant, selected_images: List | None = None) -> Byt
     map_path = Path(assets_dir) / map_raw_path if map_raw_path else None
 
     # 1. Attempt Local File, then URL
-    map_img: Flowable
+    map_img: Flowable = None
     if map_path and map_path.exists():
         map_img = Image(str(map_path.absolute()))
     elif map_url:
         try:
-            resp = requests.get(map_url, timeout=5)
+            resp = requests.get(map_url, headers=settings.vascular_nc_headers_get, timeout=5)
             if resp.status_code == 200:
                 map_img = Image(BytesIO(resp.content))
         except Exception:
