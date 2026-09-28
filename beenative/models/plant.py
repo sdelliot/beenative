@@ -9,7 +9,12 @@ class Plant(Base):
     # --- Primary Key & Core Identity ---
     id = Column(Integer, primary_key=True, autoincrement=True)
     scientific_name = Column(String, unique=True, nullable=False, index=True)
-    is_native = Column(Boolean, default=True)
+
+    # Stores categories: "native", "uncertain", "non_native_benign", "invasive"
+    provenance_status = Column(String, default="native", index=True)
+
+    # Stores optional context/range notes (e.g., "Uncertain provenance for NC, native further west")
+    provenance_notes = Column(String, nullable=True)
 
     # --- Prairie Moon Data (pm_*) ---
     pm_common_name = Column(String)
