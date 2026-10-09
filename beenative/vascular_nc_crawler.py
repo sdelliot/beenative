@@ -119,7 +119,7 @@ def download_plant_data(plant_ids: list, delay: float = 1.0, progress_callback: 
     return new_downloads, skipped_count
 
 
-def download_map_image(soup: BeautifulSoup, plant_id: str) -> Optional[str]:
+def download_map_image(soup: BeautifulSoup, plant_id: str, should_download: bool = False) -> Optional[str]:
     """Finds, downloads, and returns the local path of the map image."""
     if not Path(settings.download_maps_dir).exists():
         Path(settings.download_maps_dir).mkdir(parents=True)
@@ -140,15 +140,15 @@ def download_map_image(soup: BeautifulSoup, plant_id: str) -> Optional[str]:
     local_path = Path(settings.download_maps_dir) / local_filename
 
     # Download if not exists
-    # if not local_path.exists():
-    #     try:
-    #         response = requests.get(full_url, stream=True, timeout=settings.crawl_timout)
-    #         response.raise_for_status()
-    #         with local_path.open("wb") as f:
-    #             for chunk in response.iter_content(1024):
-    #                 f.write(chunk)
-    #     except Exception:
-    #         return None, None
+    if should_download and not local_path.exists():
+        try:
+            response = requests.get(full_url, stream=True, timeout=settings.crawl_timout)
+            response.raise_for_status()
+            with local_path.open("wb") as f:
+                for chunk in response.iter_content(1024):
+                    f.write(chunk)
+        except Exception:
+            return None, None
 
     return str(local_path), str(full_url)
 
