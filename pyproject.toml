@@ -12,7 +12,7 @@ dependencies = [
   "alembic",
   "beautifulsoup4>=4.14.3",
   "click>=8.5.0",
-  "flet>=0.80.5",
+  "flet==1.0.4",
   "greenlet>=3.1.1",
   "pillow>=11.1.0",
   "pydantic~=2.0",
