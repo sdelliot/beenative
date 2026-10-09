@@ -94,7 +94,10 @@ jobs:
         uses: astral-sh/setup-uv@v7
 
       - name: Install Dependencies
-        run: make install
+        run: |
+          make install
+          flutter clean
+          flutter pub get
 
       - name: Build app
         shell: bash
