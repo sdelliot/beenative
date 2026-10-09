@@ -853,11 +853,36 @@ class PlantDetails:
             self.bs.content.content = self.detail_stack
             self.logger.debug("Setting all bottom sheet controls")
 
+            # Add this logic before extending self.detail_container.controls:
+            provenance_banner = (
+                ft.Container(
+                    content=ft.Row(
+                        [
+                            ft.Icon(ft.Icons.INFO_OUTLINE, size=18, color=ft.Colors.AMBER_700),
+                            ft.Text(
+                                "Provenance Uncertain: May or may not be native to NC.",
+                                size=12,
+                                weight=ft.FontWeight.BOLD,
+                                color=ft.Colors.AMBER_900 if not self.is_dark else ft.Colors.AMBER_200,
+                            ),
+                        ],
+                        spacing=8,
+                        tight=True,
+                    ),
+                    bgcolor=ft.Colors.with_opacity(0.15, ft.Colors.AMBER_700),
+                    padding=ft.Padding.symmetric(horizontal=12, vertical=8),
+                    border_radius=8,
+                    border=ft.Border.all(1, ft.Colors.with_opacity(0.3, ft.Colors.AMBER_700)),
+                )
+                if getattr(plant, "provenance_status") != "native"
+                else ft.Container(width=0, height=0)
+            )
             # Build the Content
             self.detail_container.controls.extend(
                 [
                     header,
                     ft.Divider(),
+                    provenance_banner,
                     ft.ResponsiveRow(
                         [
                             ft.Column(

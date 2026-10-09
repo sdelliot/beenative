@@ -24,12 +24,12 @@ It is incredibly important to us that Bee Native only shows plants that naturall
 When we analyze the state's plant list, we look at the background color of each entry. These colors tell us the "State Rank" and conservation status of a plant:
 
 * **The Green Standard (Included):** We only include plants with a **light green** background. This color indicates "Native Taxa"—plants that are officially known to be original to North Carolina.
+* **The Uncertain Filter (Included):** Species reported to be in the state, but whose presence has not been officially confirmed (often highlighted with a **yellow** background or state rank notes such as `SE?`). For transparency, any plant belonging to this category displays a strict a dedicated **Provenance Warning Banner**.
 * **The "Non-Native" Filter (Excluded):** Our system automatically filters out and excludes any plants marked with the following colors, as they are not considered conservation targets in our state:
-    * **Salmon/Orange (Exotic):** Plants that are not native to NC, including those from other continents or those that have "escaped" into the state from elsewhere.
-    * **Yellow (Uncertain):** Species reported to be in the state, but whose presence has not been officially confirmed.
-    * **Light Brown (Not Valid):** Taxa that are no longer considered valid names or have been merged into other scientific names.
-    * **Lilac (Not in NC):** Plants that were once reported in North Carolina but have since been proven not to exist within our borders.
-    * **Light Blue (Hybrids):** Hybrid plants without specific scientific status, which are generally not prioritized for native conservation.
+  * **Salmon/Orange (Exotic):** Plants that are not native to NC, including those from other continents or those that have "escaped" into the state from elsewhere.
+  * **Light Brown (Not Valid):** Taxa that are no longer considered valid names or have been merged into other scientific names.
+  * **Lilac (Not in NC):** Plants that were once reported in North Carolina but have since been proven not to exist within our borders.
+  * **Light Blue (Hybrids):** Hybrid plants without specific scientific status, which are generally not prioritized for native conservation.
 
 By strictly adhering to these categories, Bee Native ensures that every plant you discover is a verified member of North Carolina's natural heritage.
 
