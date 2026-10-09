@@ -108,6 +108,15 @@ def prep_db(
         df = api.parse_dimensions(df)
         df = api.standardize_colors(df)
         df = api.categorize_plants(df)
+
+        # Ensure provenance columns are explicitly carried through if prefixed or renamed during merge
+        if "vasc_provenance_status" in df.columns and "provenance_status" not in df.columns:
+            df = df.with_columns(
+                [
+                    pl.col("vasc_provenance_status").alias("provenance_status"),
+                    pl.col("vasc_provenance_notes").alias("provenance_notes"),
+                ]
+            )
         bdb = BeeNativeDB()
         bdb.save_dataframe(df)
     except Exception as e:
@@ -139,6 +148,23 @@ def migrate(message: str = typer.Option(None, "--message", "-m", help="Revision 
     typer.echo("🚀 Upgrading database to latest schema...")
     command.upgrade(alembic_cfg, "head")
     typer.secho("✅ Database is now up to date.", fg=typer.colors.GREEN)
+
+
+@app.command()
+def update(
+    vascular_source: str = typer.Argument("beenative/plant_list.html", help="The local HTML file to parse"),
+    delay: float = typer.Option(2.0, help="Seconds to wait between requests"),
+    get_maps: bool = typer.Option(False, "--get-maps", help="Download map PNGs during processing"),
+):
+    """
+    Crawls and appends ONLY newly identified plants into the database without re-processing existing data.
+    """
+    api = BeeNativeAPI()
+    # try:
+    api.update_new_plants(nc_source=vascular_source, delay=delay, get_maps=get_maps)
+    # except Exception as e:
+    #     typer.secho(f"❌ Error during incremental update: {e}", fg=typer.colors.RED, err=True)
+    #     raise typer.Exit(code=1) from e
 
 
 if __name__ == "__main__":

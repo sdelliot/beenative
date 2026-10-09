@@ -8,6 +8,7 @@ from datetime import datetime
 
 import segno
 import requests
+from settings import settings
 from models.plant import Plant
 from reportlab.lib import colors
 from svglib.svglib import svg2rlg
@@ -17,8 +18,6 @@ from reportlab.platypus import Image, Table, Spacer, Flowable, Paragraph, TableS
 from reportlab.lib.units import inch
 from reportlab.lib.styles import PropertySet, getSampleStyleSheet
 from reportlab.lib.pagesizes import letter, landscape
-
-from beenative.settings import settings
 
 
 class ImageRowItem(TypedDict):

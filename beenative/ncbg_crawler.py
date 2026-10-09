@@ -1,4 +1,5 @@
 import time
+import random
 from typing import Callable, Optional
 from pathlib import Path
 
@@ -27,23 +28,33 @@ class NCBGParser:
         results = []
         with requests.Session() as session:
             session.headers.update(settings.requests_headers)
+
+            # Core session, load balancer, and security WAF cookies
             initial_cookies = {
-                "PHPSESSID": "798a2bc91ea62aa089519d23301e2c4c",
+                "PHPSESSID": "57f66b5bb0dcc0b4f3b0baadb985c324",
+                "368d265877f97f71f0d7a4f174a942db": "962c4bfeeac4d511532cc1a85b337f0e",
+                "BIGipServer~OpenShift~cloudapps-prd4-router-443": (
+                    "!Ww231gzg8EGHO+ZcMRWVIHjTWj5SkD9LnqUfHYXRxoMBq9x0G5OLjHpTWfXuCb48VbNNm8hsupe6J20="
+                ),
                 "TS01afcdf3": (
-                    "018e15451906d7edfd21d10f1d816bfaa7afb16f2cffabc030c584843591edf019f650"
-                    "d67cc1f65a86bb904b8d6e924edf3df46b3b"
+                    "018e15451952d072ed50c83b9dd620598b52a87d3f361e06b2a5a3cd28cbbed7d31b1a5670be9918210f8f108d1318fc97cdfe5b09"
                 ),
             }
             session.cookies.update(initial_cookies)
+
             for name in plant_list:
                 if progress_callback:
                     progress_callback(name)
+
                 data, inet_call = self.get_plant_data(name, session)
                 if data:
                     results.append({"scientific_name": name, "content": data})
 
                 if inet_call:
-                    time.sleep(delay)
+                    # Adding float jitter creates more natural delay intervals
+                    sleep_time = random.uniform(float(delay), float(delay) + 3.0)
+                    time.sleep(sleep_time)
+
             return results
 
     def get_plant_data(self, scientific_name, session):

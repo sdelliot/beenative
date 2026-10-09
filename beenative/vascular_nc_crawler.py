@@ -10,8 +10,11 @@ from bs4 import BeautifulSoup
 from beenative.settings import settings
 
 
-def get_native_plant_ids(file_path: str):
-    """Parses local HTML to find IDs of native plants."""
+def get_plant_provenance_records(file_path: str):
+    """
+    Parses local HTML to extract plant IDs along with their
+    determined provenance status and notes based on table row colors and text ranks.
+    """
     file_path_obj = Path(file_path)
     if not file_path_obj.exists():
         raise FileNotFoundError(f"Source file {file_path} not found.")
@@ -19,40 +22,56 @@ def get_native_plant_ids(file_path: str):
     with file_path_obj.open("r", encoding="utf-8") as f:
         soup = BeautifulSoup(f, "html.parser")
 
-    native_ids = []
+    plant_records = []
     rows = soup.find_all("tr")
 
-    ## Colors
-    #  - #ffbb99 (Exotic): Frequently used for non-native, naturalized, or exotic species such as
-    #    Epipactis helleborine, Zea mays (Corn), and Hedera helix (English Ivy).
-    #  - #ffe699 (Uncertain): Often associated with varieties or specific taxonomic statuses, such as
-    #    Pycnanthemum verticillatum var. verticillatum or Malus glaucescens.
-    #  - #ffff99 (Not Valid): Used for specific entries like Hedera hibernica.
-    #  - #eeccff (Not in NC): Seen in rows for specific conservation or taxonomic notes, such as
-    #    for certain Hymenocallis entries.
-    #  - #c6d9ec (Hybrid): Used for hybrid species, such as Populus x jackii.
-    non_native_colors = {"#ffbb99", "#eeccff", "#ffe699", "#ffff99"}
+    # Background color mapping based on your notes:
+    # - #ffbb99: Exotic
+    # - #ffe699: Uncertain
+    # - #ffff99 / #eeccff: Not valid / Not in NC / Exotics
 
     for row in rows:
         cells = row.find_all("td")
         if not cells:
             continue
 
-        is_native = True
+        provenance_status = "native"
+        notes_parts = []
+
         for cell in cells:
-            style = cell.get("style", "")
-            if any(color in style.lower() for color in non_native_colors):
-                is_native = False
+            style = cell.get("style", "").lower()
+            cell_text = cell.get_text(strip=True)
+
+            # 1. Check background colors
+            if "#ffe699" in style:
+                provenance_status = "uncertain"
+                break
+            elif "#ffbb99" in style:
+                provenance_status = "non_native_benign"
+            elif "#eeccff" in style or "#ffff99" in style:
+                provenance_status = "non_native_benign"
+
+            # 2. Look for SE? explicitly in text cells (State rank column)
+            if "se?" in cell_text.lower():
+                provenance_status = "uncertain"
+                notes_parts.append(f"State rank indicates uncertainty: {cell_text}")
                 break
 
-        if is_native:
-            form = row.find("form", {"action": "species_account.php"})
-            if form:
-                plant_id_input = form.find("input", {"name": "id"})
-                if plant_id_input:
-                    native_ids.append(plant_id_input["value"])
+        # Find the species account form ID
+        form = row.find("form", {"action": "species_account.php"})
+        if form:
+            plant_id_input = form.find("input", {"name": "id"})
+            if plant_id_input and provenance_status in {"native", "uncertain"}:
+                plant_id = plant_id_input["value"]
+                plant_records.append(
+                    {
+                        "id": plant_id,
+                        "provenance_status": provenance_status,
+                        "provenance_notes": "; ".join(notes_parts) if notes_parts else None,
+                    }
+                )
 
-    return native_ids
+    return plant_records
 
 
 def download_plant_data(plant_ids: list, delay: float = 1.0, progress_callback: Optional[Callable] = None):
@@ -103,7 +122,7 @@ def download_plant_data(plant_ids: list, delay: float = 1.0, progress_callback: 
     return new_downloads, skipped_count
 
 
-def download_map_image(soup: BeautifulSoup, plant_id: str) -> Optional[str]:
+def download_map_image(soup: BeautifulSoup, plant_id: str, should_download: bool = False) -> Optional[str]:
     """Finds, downloads, and returns the local path of the map image."""
     if not Path(settings.download_maps_dir).exists():
         Path(settings.download_maps_dir).mkdir(parents=True)
@@ -111,7 +130,7 @@ def download_map_image(soup: BeautifulSoup, plant_id: str) -> Optional[str]:
     # Find the img tag with the map
     img_tag = soup.find("img", attrs={"usemap": "#Map"})
     if not img_tag or not img_tag.get("src"):
-        return None
+        return None, None
 
     # Clean the URL: strip query parameters
     raw_src = img_tag["src"]
@@ -124,7 +143,7 @@ def download_map_image(soup: BeautifulSoup, plant_id: str) -> Optional[str]:
     local_path = Path(settings.download_maps_dir) / local_filename
 
     # Download if not exists
-    if not local_path.exists():
+    if should_download and not local_path.exists():
         try:
             response = requests.get(full_url, stream=True, timeout=settings.crawl_timout)
             response.raise_for_status()
@@ -132,9 +151,9 @@ def download_map_image(soup: BeautifulSoup, plant_id: str) -> Optional[str]:
                 for chunk in response.iter_content(1024):
                     f.write(chunk)
         except Exception:
-            return None
+            return None, None
 
-    return local_path, full_url
+    return str(local_path), str(full_url)
 
 
 def parse_species_file(file_path: str, include_map: bool = True) -> dict:
@@ -164,29 +183,34 @@ def parse_species_file(file_path: str, include_map: bool = True) -> dict:
                 data["author"] = sci_tag.next_sibling.strip() if sci_tag.next_sibling else ""
 
     # 2. Target the SECOND instance of the POST form
-    forms = soup.find_all("form", attrs={"method": "POST", "action": "species_account.php"})
-    if len(forms) >= 2:
-        target_form = forms[1]  # Index 1 is the second instance
-        alt_table = target_form.find("table", class_="alternate")
+    alternate_tables = soup.find_all("table", class_="alternate")
+    target_table = None
 
-        if alt_table:
-            # We iterate through all <strong> tags in the table
-            labels = alt_table.find_all("strong")
-            for label_tag in labels:
-                label_text = label_tag.get_text(strip=True).lower()
-                clean_label = label_text.replace(" ", "_").replace("(s)", "s").replace(":", "")
+    # Iterate through alternate tables to find the one with actual attributes like 'Distribution' or 'Habitat'
+    for tbl in alternate_tables:
+        tbl_text = tbl.get_text()
+        if "Distribution" in tbl_text or "Habitat" in tbl_text:
+            target_table = tbl
+            break
 
-                # NAVIGATION LOGIC:
-                # The label is in a <td>. We need the <td> immediately following it.
-                parent_td = label_tag.find_parent("td")
-                value_td = parent_td.find_next_sibling("td")
+    if target_table:
+        # We iterate through all <strong> tags in the table
+        labels = target_table.find_all("strong")
+        for label_tag in labels:
+            label_text = label_tag.get_text(strip=True).lower()
+            clean_label = label_text.replace(" ", "_").replace("(s)", "s").replace(":", "")
 
-                if value_td:
-                    # FIX: Instead of get_text() which recurses into unclosed tags,
-                    # we only take the strings that are DIRECT children of this <td>.
-                    # We join them to handle cases with <br> tags.
-                    parts = [s.strip() for s in value_td.find_all(string=True, recursive=False) if s.strip()]
-                    data[clean_label] = " ".join(parts)
+            # NAVIGATION LOGIC:
+            # The label is in a <td>. We need the <td> immediately following it.
+            parent_td = label_tag.find_parent("td")
+            value_td = parent_td.find_next_sibling("td")
+
+            if value_td:
+                # FIX: Instead of get_text() which recurses into unclosed tags,
+                # we only take the strings that are DIRECT children of this <td>.
+                # We join them to handle cases with <br> tags.
+                parts = [s.strip() for s in value_td.find_all(string=True, recursive=False) if s.strip()]
+                data[clean_label] = " ".join(parts)
 
     # 3. Map File Path (Retooled)
     if include_map:

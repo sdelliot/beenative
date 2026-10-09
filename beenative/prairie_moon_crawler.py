@@ -100,6 +100,9 @@ class PrairieMoonJSONParser:
                 catalog_code = product.get("sku") or product.get("code")
                 if not catalog_code:
                     continue
+                prod_type = product.get("product_type_unigram", "")
+                if prod_type.lower() == "collection":
+                    continue
 
                 # Map the data according to requirements
                 flower_data = {
@@ -123,6 +126,7 @@ class PrairieMoonJSONParser:
                     "url": f"https://www.prairiemoon.com{product.get('url')}",
                 }
                 prairie_cat.append(flower_data)
-                progress_callback(total_flowers)
+                if progress_callback:
+                    progress_callback(total_flowers)
 
         return pl.DataFrame(prairie_cat, schema=pm_schema)

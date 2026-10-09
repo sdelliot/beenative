@@ -32,10 +32,10 @@ def get_plant_data(scientific_name):
     """
     not_found = "NOT FOUND"
 
-    # 1. Build the URL
     # Formats 'Ilex decidua' into 'ilex-decidua'
     formatted_name = scientific_name.lower().replace(" ", "-")
-    url = f"{settings.ncsu_plant_toolbox_plants_url}/{formatted_name}/"
+    base_url = settings.ncsu_plant_toolbox_plants_url.rstrip("/")
+    url = f"{base_url}/{formatted_name}/"
 
     file_path = Path(settings.crawl_dir) / f"{scientific_name}_ncsu.html"
 
@@ -58,33 +58,36 @@ def get_plant_data(scientific_name):
             print(f"Error fetching {url}: {e}")
             with file_path.open("w", encoding="utf-8") as f:
                 f.write(not_found)
-            return None
+            return None, inet_call
     return content, inet_call
 
 
 def process_all_plants(input_df: pl.DataFrame, progress_callback: Optional[Callable] = None):
     """
-    Processes plant data by targeting the first column of the input DataFrame.
+    Processes plant data by targeting the columns of the input DataFrame.
     """
-    if input_df.is_empty():
+    if input_df.is_empty() or "scientific_name" not in input_df.columns:
         return pl.DataFrame()
 
     results = []
 
-    # We use named=True so we can still access other columns if needed,
-    # but we access the data via the dynamic variable target_col.
     for row in input_df.iter_rows(named=True):
         content = row.get("content")
         sci_name = row.get("scientific_name")
 
+        if not sci_name or not content:
+            continue
+
         if progress_callback:
             progress_callback(f"{sci_name}")
 
-        # Process the content
         processed_row = process_ncsu_data(sci_name, content)
 
         if processed_row:
             results.append(processed_row)
+
+    if not results:
+        return pl.DataFrame()
 
     return pl.DataFrame(results).unnest("attributes")
 

@@ -44,30 +44,31 @@ class BeeNativeDB:
         processed_df = self._prepare_for_sqlite(df)
         staging_table = f"{table_name}_staging"
 
-        # 1. High speed write to staging
-        processed_df.write_database(
-            table_name=staging_table, connection=self.db_uri, engine="adbc", if_table_exists="replace"
-        )
-
-        # 2. Get columns safely
-        cols = [f'"{c}"' for c in processed_df.columns]
-        col_list = ", ".join(cols)
-
-        # 3. Use the Atomic Delete-and-Insert Pattern
-        # This is logically equivalent to UPSERT but much more stable for large schemas
-        sql_commands = [
-            # Remove existing rows that match our new data
-            f"DELETE FROM {table_name} WHERE scientific_name IN (SELECT scientific_name FROM {staging_table})",
-            # Insert the new data
-            f"INSERT INTO {table_name} ({col_list}) SELECT {col_list} FROM {staging_table}",
-            # Cleanup
-            f"DROP TABLE {staging_table}",
-        ]
-
         with sqlite3.connect(self.db_path) as conn:
             cursor = conn.cursor()
-            for cmd in sql_commands:
-                cursor.execute(cmd)
+
+            # 1. Clean up any lingering staging table from previous failed runs
+            cursor.execute(f"DROP TABLE IF EXISTS {staging_table}")
+
+            # 2. Dynamically create a lightweight staging table
+            cols = [f'"{c}"' for c in processed_df.columns]
+            col_defs = ", ".join(cols)
+            cursor.execute(f"CREATE TABLE {staging_table} ({col_defs})")
+
+            # 3. Extract native Python types using pure Polars and batch insert
+            placeholders = ", ".join(["?"] * len(cols))
+            cursor.executemany(f"INSERT INTO {staging_table} VALUES ({placeholders})", processed_df.rows())
+
+            # 4. Perform atomic UPSERT merge
+            col_list = ", ".join(cols)
+            cursor.execute(
+                f"DELETE FROM {table_name} WHERE scientific_name IN (SELECT scientific_name FROM {staging_table})"
+            )
+            cursor.execute(f"INSERT INTO {table_name} ({col_list}) SELECT {col_list} FROM {staging_table}")
+
+            # 5. Cleanup
+            cursor.execute(f"DROP TABLE {staging_table}")
+
             conn.commit()
 
         print(f"Successfully synchronized {len(df)} records.")
@@ -76,4 +77,6 @@ class BeeNativeDB:
     def query(self, sql_query, params=()):
         """Returns a Polars DF from any SQL query"""
         with sqlite3.connect(self.db_path) as conn:
-            return pl.read_database(sql_query, conn, tuple(params))
+            if params:
+                return pl.read_database(sql_query, connection=conn, execute_options={"parameters": tuple(params)})
+            return pl.read_database(sql_query, connection=conn)
