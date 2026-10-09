@@ -232,8 +232,5 @@ exclude = ["tests*", "docs*"]
 fallback_version = "0.0.0-dev"
 write_to = "beenative/_version.py"
 
-[tool.uv]
-exclude-newer = "1 week"
-
 [tool.uv.sources]
 beenative = { workspace = true }
