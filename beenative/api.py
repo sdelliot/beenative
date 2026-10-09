@@ -9,12 +9,12 @@ import polars as pl
 from rich.panel import Panel
 from rich.table import Column
 from rich.console import Console
+from utils.ingest import BeeNativeDB
 from rich.progress import Progress, BarColumn, TextColumn, SpinnerColumn, TaskProgressColumn, TimeRemainingColumn
 
 import beenative.utils.ingest_utils as bn_utils
 from beenative import vascular_nc_crawler, plant_toolbox_crawler
 from beenative.settings import settings
-from utils.ingest import BeeNativeDB
 from beenative.ncbg_crawler import NCBGParser
 from beenative.prairie_moon_crawler import PrairieMoonJSONParser
 
@@ -42,7 +42,7 @@ class BeeNativeAPI:
         with console.status("[cyan]Starting to get all plant provenance records in NC..."):
             plant_records = vascular_nc_crawler.get_plant_provenance_records(nc_source)
             native_ids = [record["id"] for record in plant_records]
-            
+
             # Create a lookup dictionary for provenance data
             provenance_lookup = {
                 record["id"]: {
@@ -85,7 +85,7 @@ class BeeNativeAPI:
         if vascular_df.is_empty():
             print("No data found.")
             return
-        
+
         # Inject provenance fields into the vascular DataFrame
         vascular_df = vascular_df.with_columns([
             pl.col("id").map_elements(
@@ -682,7 +682,10 @@ class BeeNativeAPI:
             # 1. Process NCSU using substring matching
             if ncsu_val:
                 # Handle comma-separated lists if they exist
-                parts = [p.strip() for p in ncsu_val.split(",")]
+                if isinstance(ncsu_val, str):
+                    parts = [p.strip() for p in ncsu_val.split(",")]
+                else:
+                    parts = ncsu_val
                 for part in parts:
                     for key, target in ncsu_moisture_map.items():
                         # Check if the map key is found anywhere in the NCSU description
@@ -983,7 +986,7 @@ class BeeNativeAPI:
 
         # Identify raw files needing download
         missing_download_ids = [
-            pid for pid in all_ids 
+            pid for pid in all_ids
             if not (crawl_dir / f"{pid}.html").exists()
         ]
 
@@ -995,7 +998,10 @@ class BeeNativeAPI:
                 TaskProgressColumn(),
                 TimeRemainingColumn(),
             ) as progress:
-                dl_task = progress.add_task("[cyan]⬇️ Downloading missing plant profile pages...", total=len(missing_download_ids))
+                dl_task = progress.add_task(
+                    "[cyan]⬇️ Downloading missing plant profile pages...",
+                    total=len(missing_download_ids)
+                )
                 vascular_nc_crawler.download_plant_data(
                     missing_download_ids, delay=delay, progress_callback=lambda: progress.update(dl_task, advance=1)
                 )
@@ -1046,10 +1052,10 @@ class BeeNativeAPI:
         with console.status("[cyan]Checking SQLite database for existing records..."):
             bdb = BeeNativeDB()
             existing_df = bdb.query("SELECT scientific_name FROM plants")
-            
+
             existing_names_clean = {
-                str(name).strip().lower() 
-                for name in existing_df["scientific_name"].to_list() 
+                str(name).strip().lower()
+                for name in existing_df["scientific_name"].to_list()
                 if name is not None
             } if not existing_df.is_empty() and "scientific_name" in existing_df.columns else set()
 
@@ -1069,7 +1075,7 @@ class BeeNativeAPI:
         # 5. Fetch supplementary sources ONLY for missing scientific names
         console.print(f"[green]🔍 Fetching NCSU data for {len(new_plant_list)} new names...")
         ncsu_results = plant_toolbox_crawler.get_all_plants(new_plant_list, delay=delay)
-        
+
         valid_ncsu = [r for r in ncsu_results if isinstance(r, dict) and r.get("scientific_name")]
         if valid_ncsu:
             ncsu_df = plant_toolbox_crawler.process_all_plants(pl.DataFrame(valid_ncsu))

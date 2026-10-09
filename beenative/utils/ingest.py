@@ -70,10 +70,10 @@ class BeeNativeDB:
             cursor.execute(
                 f"INSERT INTO {table_name} ({col_list}) SELECT {col_list} FROM {staging_table}"
             )
-            
+
             # 5. Cleanup
             cursor.execute(f"DROP TABLE {staging_table}")
-            
+
             conn.commit()
 
         print(f"Successfully synchronized {len(df)} records.")
@@ -84,8 +84,8 @@ class BeeNativeDB:
         with sqlite3.connect(self.db_path) as conn:
             if params:
                 return pl.read_database(
-                    sql_query, 
-                    connection=conn, 
+                    sql_query,
+                    connection=conn,
                     execute_options={"parameters": tuple(params)}
                 )
             return pl.read_database(sql_query, connection=conn)

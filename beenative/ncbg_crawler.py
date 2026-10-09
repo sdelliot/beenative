@@ -1,10 +1,10 @@
 import time
+import random
 from typing import Callable, Optional
 from pathlib import Path
 
 import polars as pl
 import requests
-import random
 from bs4 import BeautifulSoup
 
 import beenative.utils.ingest_utils as bn_utils
@@ -28,7 +28,7 @@ class NCBGParser:
         results = []
         with requests.Session() as session:
             session.headers.update(settings.requests_headers)
-            
+
             # Core session, load balancer, and security WAF cookies
             initial_cookies = {
                 "PHPSESSID": "57f66b5bb0dcc0b4f3b0baadb985c324",

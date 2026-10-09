@@ -12,7 +12,7 @@ from beenative.settings import settings
 
 def get_plant_provenance_records(file_path: str):
     """
-    Parses local HTML to extract plant IDs along with their 
+    Parses local HTML to extract plant IDs along with their
     determined provenance status and notes based on table row colors and text ranks.
     """
     file_path_obj = Path(file_path)
@@ -29,7 +29,6 @@ def get_plant_provenance_records(file_path: str):
     # - #ffbb99: Exotic
     # - #ffe699: Uncertain
     # - #ffff99 / #eeccff: Not valid / Not in NC / Exotics
-    non_native_colors = {"#ffbb99", "#eeccff", "#ffe699", "#ffff99"}
 
     for row in rows:
         cells = row.find_all("td")
@@ -46,6 +45,7 @@ def get_plant_provenance_records(file_path: str):
             # 1. Check background colors
             if "#ffe699" in style:
                 provenance_status = "uncertain"
+                break
             elif "#ffbb99" in style:
                 provenance_status = "non_native_benign"
             elif "#eeccff" in style or "#ffff99" in style:
@@ -55,12 +55,13 @@ def get_plant_provenance_records(file_path: str):
             if "se?" in cell_text.lower():
                 provenance_status = "uncertain"
                 notes_parts.append(f"State rank indicates uncertainty: {cell_text}")
+                break
 
         # Find the species account form ID
         form = row.find("form", {"action": "species_account.php"})
         if form:
             plant_id_input = form.find("input", {"name": "id"})
-            if plant_id_input:
+            if plant_id_input and provenance_status in {"native", "uncertain"}:
                 plant_id = plant_id_input["value"]
                 plant_records.append({
                     "id": plant_id,
@@ -182,7 +183,7 @@ def parse_species_file(file_path: str, include_map: bool = True) -> dict:
     # 2. Target the SECOND instance of the POST form
     alternate_tables = soup.find_all("table", class_="alternate")
     target_table = None
-    
+
     # Iterate through alternate tables to find the one with actual attributes like 'Distribution' or 'Habitat'
     for tbl in alternate_tables:
         tbl_text = tbl.get_text()

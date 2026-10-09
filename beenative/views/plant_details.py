@@ -874,7 +874,7 @@ class PlantDetails:
                     border_radius=8,
                     border=ft.Border.all(1, ft.Colors.with_opacity(0.3, ft.Colors.AMBER_700)),
                 )
-                if getattr(plant, "provenance_status") != "native"
+                if plant.provenance_status != "native"
                 else ft.Container(width=0, height=0)
             )
             # Build the Content
