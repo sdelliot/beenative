@@ -93,16 +93,9 @@ jobs:
       - name: Setup uv
         uses: astral-sh/setup-uv@v7
 
-      - name: Setup Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          channel: 'stable'
-
       - name: Install Dependencies
         run: |
           make install
-          # flutter clean
-          # flutter pub get
 
       - name: Build app
         shell: bash
