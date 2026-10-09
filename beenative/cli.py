@@ -111,10 +111,12 @@ def prep_db(
 
         # Ensure provenance columns are explicitly carried through if prefixed or renamed during merge
         if "vasc_provenance_status" in df.columns and "provenance_status" not in df.columns:
-            df = df.with_columns([
-                pl.col("vasc_provenance_status").alias("provenance_status"),
-                pl.col("vasc_provenance_notes").alias("provenance_notes")
-            ])
+            df = df.with_columns(
+                [
+                    pl.col("vasc_provenance_status").alias("provenance_status"),
+                    pl.col("vasc_provenance_notes").alias("provenance_notes"),
+                ]
+            )
         bdb = BeeNativeDB()
         bdb.save_dataframe(df)
     except Exception as e:
@@ -147,6 +149,7 @@ def migrate(message: str = typer.Option(None, "--message", "-m", help="Revision 
     command.upgrade(alembic_cfg, "head")
     typer.secho("✅ Database is now up to date.", fg=typer.colors.GREEN)
 
+
 @app.command()
 def update(
     vascular_source: str = typer.Argument("beenative/plant_list.html", help="The local HTML file to parse"),
@@ -162,6 +165,7 @@ def update(
     # except Exception as e:
     #     typer.secho(f"❌ Error during incremental update: {e}", fg=typer.colors.RED, err=True)
     #     raise typer.Exit(code=1) from e
+
 
 if __name__ == "__main__":
     app()

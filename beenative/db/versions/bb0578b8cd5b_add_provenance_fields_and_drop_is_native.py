@@ -5,6 +5,7 @@ Revises: 254f6bea39e6
 Create Date: 2026-09-28 20:17:52.350395
 
 """
+
 import sqlalchemy as sa
 from alembic import op
 
@@ -35,6 +36,7 @@ def upgrade() -> None:
     # 3. Use batch_alter_table to safely drop the old is_native column in SQLite
     with op.batch_alter_table("plants", schema=None) as batch_op:
         batch_op.drop_column("is_native")
+
 
 def downgrade() -> None:
     # 1. Re-add is_native column

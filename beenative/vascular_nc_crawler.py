@@ -63,11 +63,13 @@ def get_plant_provenance_records(file_path: str):
             plant_id_input = form.find("input", {"name": "id"})
             if plant_id_input and provenance_status in {"native", "uncertain"}:
                 plant_id = plant_id_input["value"]
-                plant_records.append({
-                    "id": plant_id,
-                    "provenance_status": provenance_status,
-                    "provenance_notes": "; ".join(notes_parts) if notes_parts else None
-                })
+                plant_records.append(
+                    {
+                        "id": plant_id,
+                        "provenance_status": provenance_status,
+                        "provenance_notes": "; ".join(notes_parts) if notes_parts else None,
+                    }
+                )
 
     return plant_records
 

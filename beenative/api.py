@@ -47,7 +47,7 @@ class BeeNativeAPI:
             provenance_lookup = {
                 record["id"]: {
                     "provenance_status": record["provenance_status"],
-                    "provenance_notes": record["provenance_notes"]
+                    "provenance_notes": record["provenance_notes"],
                 }
                 for record in plant_records
             }
@@ -87,16 +87,18 @@ class BeeNativeAPI:
             return
 
         # Inject provenance fields into the vascular DataFrame
-        vascular_df = vascular_df.with_columns([
-            pl.col("id").map_elements(
-                lambda pid: provenance_lookup.get(pid, {}).get("provenance_status", "native"),
-                return_dtype=pl.Utf8
-            ).alias("provenance_status"),
-            pl.col("id").map_elements(
-                lambda pid: provenance_lookup.get(pid, {}).get("provenance_notes"),
-                return_dtype=pl.Utf8
-            ).alias("provenance_notes")
-        ])
+        vascular_df = vascular_df.with_columns(
+            [
+                pl.col("id")
+                .map_elements(
+                    lambda pid: provenance_lookup.get(pid, {}).get("provenance_status", "native"), return_dtype=pl.Utf8
+                )
+                .alias("provenance_status"),
+                pl.col("id")
+                .map_elements(lambda pid: provenance_lookup.get(pid, {}).get("provenance_notes"), return_dtype=pl.Utf8)
+                .alias("provenance_notes"),
+            ]
+        )
 
         # If output is CSV, Base64 strings will make it huge.
         # Parquet or IPC is better for binary/large text data.
@@ -985,10 +987,7 @@ class BeeNativeAPI:
         all_ids = [r["id"] for r in all_records if r.get("id")]
 
         # Identify raw files needing download
-        missing_download_ids = [
-            pid for pid in all_ids
-            if not (crawl_dir / f"{pid}.html").exists()
-        ]
+        missing_download_ids = [pid for pid in all_ids if not (crawl_dir / f"{pid}.html").exists()]
 
         if missing_download_ids:
             with Progress(
@@ -999,8 +998,7 @@ class BeeNativeAPI:
                 TimeRemainingColumn(),
             ) as progress:
                 dl_task = progress.add_task(
-                    "[cyan]⬇️ Downloading missing plant profile pages...",
-                    total=len(missing_download_ids)
+                    "[cyan]⬇️ Downloading missing plant profile pages...", total=len(missing_download_ids)
                 )
                 vascular_nc_crawler.download_plant_data(
                     missing_download_ids, delay=delay, progress_callback=lambda: progress.update(dl_task, advance=1)
@@ -1030,39 +1028,39 @@ class BeeNativeAPI:
 
         # 3. Inject Provenance Data using IDs
         provenance_lookup = {
-            r["id"]: {
-                "provenance_status": r["provenance_status"],
-                "provenance_notes": r["provenance_notes"]
-            }
-            for r in all_records if r.get("id")
+            r["id"]: {"provenance_status": r["provenance_status"], "provenance_notes": r["provenance_notes"]}
+            for r in all_records
+            if r.get("id")
         }
 
-        all_vasc_df = all_vasc_df.with_columns([
-            pl.col("id").map_elements(
-                lambda pid: provenance_lookup.get(pid, {}).get("provenance_status", "native"),
-                return_dtype=pl.Utf8
-            ).alias("provenance_status"),
-            pl.col("id").map_elements(
-                lambda pid: provenance_lookup.get(pid, {}).get("provenance_notes"),
-                return_dtype=pl.Utf8
-            ).alias("provenance_notes")
-        ])
+        all_vasc_df = all_vasc_df.with_columns(
+            [
+                pl.col("id")
+                .map_elements(
+                    lambda pid: provenance_lookup.get(pid, {}).get("provenance_status", "native"), return_dtype=pl.Utf8
+                )
+                .alias("provenance_status"),
+                pl.col("id")
+                .map_elements(lambda pid: provenance_lookup.get(pid, {}).get("provenance_notes"), return_dtype=pl.Utf8)
+                .alias("provenance_notes"),
+            ]
+        )
 
         # 4. Compare parsed scientific names against existing SQLite records
         with console.status("[cyan]Checking SQLite database for existing records..."):
             bdb = BeeNativeDB()
             existing_df = bdb.query("SELECT scientific_name FROM plants")
 
-            existing_names_clean = {
-                str(name).strip().lower()
-                for name in existing_df["scientific_name"].to_list()
-                if name is not None
-            } if not existing_df.is_empty() and "scientific_name" in existing_df.columns else set()
+            existing_names_clean = (
+                {str(name).strip().lower() for name in existing_df["scientific_name"].to_list() if name is not None}
+                if not existing_df.is_empty() and "scientific_name" in existing_df.columns
+                else set()
+            )
 
             # Filter vascular DataFrame down to entries whose normalized scientific_name is not in SQLite
             missing_vasc_df = all_vasc_df.filter(
-                pl.col("scientific_name").is_not_null() &
-                ~pl.col("scientific_name").str.strip_chars().str.to_lowercase().is_in(existing_names_clean)
+                pl.col("scientific_name").is_not_null()
+                & ~pl.col("scientific_name").str.strip_chars().str.to_lowercase().is_in(existing_names_clean)
             )
 
         if missing_vasc_df.is_empty():

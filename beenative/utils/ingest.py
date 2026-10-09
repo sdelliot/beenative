@@ -57,19 +57,14 @@ class BeeNativeDB:
 
             # 3. Extract native Python types using pure Polars and batch insert
             placeholders = ", ".join(["?"] * len(cols))
-            cursor.executemany(
-                f"INSERT INTO {staging_table} VALUES ({placeholders})",
-                processed_df.rows()
-            )
+            cursor.executemany(f"INSERT INTO {staging_table} VALUES ({placeholders})", processed_df.rows())
 
             # 4. Perform atomic UPSERT merge
             col_list = ", ".join(cols)
             cursor.execute(
                 f"DELETE FROM {table_name} WHERE scientific_name IN (SELECT scientific_name FROM {staging_table})"
             )
-            cursor.execute(
-                f"INSERT INTO {table_name} ({col_list}) SELECT {col_list} FROM {staging_table}"
-            )
+            cursor.execute(f"INSERT INTO {table_name} ({col_list}) SELECT {col_list} FROM {staging_table}")
 
             # 5. Cleanup
             cursor.execute(f"DROP TABLE {staging_table}")
@@ -83,9 +78,5 @@ class BeeNativeDB:
         """Returns a Polars DF from any SQL query"""
         with sqlite3.connect(self.db_path) as conn:
             if params:
-                return pl.read_database(
-                    sql_query,
-                    connection=conn,
-                    execute_options={"parameters": tuple(params)}
-                )
+                return pl.read_database(sql_query, connection=conn, execute_options={"parameters": tuple(params)})
             return pl.read_database(sql_query, connection=conn)
