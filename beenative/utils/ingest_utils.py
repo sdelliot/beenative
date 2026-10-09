@@ -111,7 +111,7 @@ def sanitize_column_names(df: pl.DataFrame) -> pl.DataFrame:
         # 2. Strip leading/trailing underscores
         return name.strip("_")
 
-    return df.map_columns(clean_name)
+    return df.rename({col: clean_name(col) for col in df.columns})
 
 
 def check_merge_quality(df):

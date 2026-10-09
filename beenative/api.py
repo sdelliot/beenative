@@ -14,6 +14,7 @@ from rich.progress import Progress, BarColumn, TextColumn, SpinnerColumn, TaskPr
 import beenative.utils.ingest_utils as bn_utils
 from beenative import vascular_nc_crawler, plant_toolbox_crawler
 from beenative.settings import settings
+from utils.ingest import BeeNativeDB
 from beenative.ncbg_crawler import NCBGParser
 from beenative.prairie_moon_crawler import PrairieMoonJSONParser
 
@@ -38,9 +39,19 @@ class BeeNativeAPI:
 
         console = Console()
         # 1. NC Vascular Plant Crawler
-        with console.status("[cyan]Starting to get all native plants in NC..."):
-            native_ids = vascular_nc_crawler.get_native_plant_ids(nc_source)
-            console.print(f"[green] Identified {len(native_ids)} native plants!")
+        with console.status("[cyan]Starting to get all plant provenance records in NC..."):
+            plant_records = vascular_nc_crawler.get_plant_provenance_records(nc_source)
+            native_ids = [record["id"] for record in plant_records]
+            
+            # Create a lookup dictionary for provenance data
+            provenance_lookup = {
+                record["id"]: {
+                    "provenance_status": record["provenance_status"],
+                    "provenance_notes": record["provenance_notes"]
+                }
+                for record in plant_records
+            }
+            console.print(f"[green] Identified {len(native_ids)} plant records with provenance data!")
 
         # Progress bar setup
         with Progress(
@@ -74,6 +85,18 @@ class BeeNativeAPI:
         if vascular_df.is_empty():
             print("No data found.")
             return
+        
+        # Inject provenance fields into the vascular DataFrame
+        vascular_df = vascular_df.with_columns([
+            pl.col("id").map_elements(
+                lambda pid: provenance_lookup.get(pid, {}).get("provenance_status", "native"),
+                return_dtype=pl.Utf8
+            ).alias("provenance_status"),
+            pl.col("id").map_elements(
+                lambda pid: provenance_lookup.get(pid, {}).get("provenance_notes"),
+                return_dtype=pl.Utf8
+            ).alias("provenance_notes")
+        ])
 
         # If output is CSV, Base64 strings will make it huge.
         # Parquet or IPC is better for binary/large text data.
@@ -942,3 +965,155 @@ class BeeNativeAPI:
         )
 
         return df_final.drop(temp_cols + ["_strict_search", "_fuzzy_search"])
+
+    @staticmethod
+    def update_new_plants(nc_source: str, delay: float = 5.0, get_maps: bool = False) -> None:
+        """
+        Crawls and processes ONLY newly identified plants without re-downloading
+        or re-processing existing dataset records.
+        """
+        console = Console()
+        crawl_dir = Path(settings.crawl_dir)
+        if not crawl_dir.exists():
+            crawl_dir.mkdir(parents=True)
+
+        # 1. Parse checklist provenance records & download HTMLs for any missing IDs
+        all_records = vascular_nc_crawler.get_plant_provenance_records(nc_source)
+        all_ids = [r["id"] for r in all_records if r.get("id")]
+
+        # Identify raw files needing download
+        missing_download_ids = [
+            pid for pid in all_ids 
+            if not (crawl_dir / f"{pid}.html").exists()
+        ]
+
+        if missing_download_ids:
+            with Progress(
+                SpinnerColumn(),
+                TextColumn("[progress.description]{task.description}", table_column=Column(width=50)),
+                BarColumn(),
+                TaskProgressColumn(),
+                TimeRemainingColumn(),
+            ) as progress:
+                dl_task = progress.add_task("[cyan]⬇️ Downloading missing plant profile pages...", total=len(missing_download_ids))
+                vascular_nc_crawler.download_plant_data(
+                    missing_download_ids, delay=delay, progress_callback=lambda: progress.update(dl_task, advance=1)
+                )
+
+        # 2. Build DataFrame across all HTML profile files to extract parsed scientific names
+        files = [(Path(settings.crawl_dir) / f"{native_id}.html") for native_id in all_ids]
+
+        if not files:
+            console.print("[yellow]⚠️ No plant profile files found to process.")
+            return
+
+        with Progress(
+            SpinnerColumn(),
+            TextColumn("[progress.description]{task.description}", table_column=Column(width=50)),
+            BarColumn(),
+            TaskProgressColumn(),
+        ) as progress:
+            parse_task = progress.add_task("[cyan]📄 Parsing HTML profile files...", total=len(files))
+            all_vasc_df = vascular_nc_crawler.build_dataframe(
+                files=files, include_maps=True, progress_callback=lambda: progress.advance(parse_task)
+            )
+
+        if all_vasc_df.is_empty():
+            console.print("[yellow]⚠️ Failed to parse plant records from profile HTML files.")
+            return
+
+        # 3. Inject Provenance Data using IDs
+        provenance_lookup = {
+            r["id"]: {
+                "provenance_status": r["provenance_status"],
+                "provenance_notes": r["provenance_notes"]
+            }
+            for r in all_records if r.get("id")
+        }
+
+        all_vasc_df = all_vasc_df.with_columns([
+            pl.col("id").map_elements(
+                lambda pid: provenance_lookup.get(pid, {}).get("provenance_status", "native"),
+                return_dtype=pl.Utf8
+            ).alias("provenance_status"),
+            pl.col("id").map_elements(
+                lambda pid: provenance_lookup.get(pid, {}).get("provenance_notes"),
+                return_dtype=pl.Utf8
+            ).alias("provenance_notes")
+        ])
+
+        # 4. Compare parsed scientific names against existing SQLite records
+        with console.status("[cyan]Checking SQLite database for existing records..."):
+            bdb = BeeNativeDB()
+            existing_df = bdb.query("SELECT scientific_name FROM plants")
+            
+            existing_names_clean = {
+                str(name).strip().lower() 
+                for name in existing_df["scientific_name"].to_list() 
+                if name is not None
+            } if not existing_df.is_empty() and "scientific_name" in existing_df.columns else set()
+
+            # Filter vascular DataFrame down to entries whose normalized scientific_name is not in SQLite
+            missing_vasc_df = all_vasc_df.filter(
+                pl.col("scientific_name").is_not_null() &
+                ~pl.col("scientific_name").str.strip_chars().str.to_lowercase().is_in(existing_names_clean)
+            )
+
+        if missing_vasc_df.is_empty():
+            console.print("[green]✅ Database is fully up to date! No missing plants found.")
+            return
+
+        new_plant_list = missing_vasc_df["scientific_name"].unique().to_list()
+        console.print(f"[bold cyan]🚀 Found {len(new_plant_list)} new plant(s) to process.")
+
+        # 5. Fetch supplementary sources ONLY for missing scientific names
+        console.print(f"[green]🔍 Fetching NCSU data for {len(new_plant_list)} new names...")
+        ncsu_results = plant_toolbox_crawler.get_all_plants(new_plant_list, delay=delay)
+        
+        valid_ncsu = [r for r in ncsu_results if isinstance(r, dict) and r.get("scientific_name")]
+        if valid_ncsu:
+            ncsu_df = plant_toolbox_crawler.process_all_plants(pl.DataFrame(valid_ncsu))
+        else:
+            ncsu_df = pl.DataFrame()
+
+        console.print(f"[green]🔍 Fetching NCBG data for {len(new_plant_list)} new names...")
+        ncbg_parser = NCBGParser()
+        ncbg_results = ncbg_parser.download_all_ncbg(new_plant_list, delay=delay)
+        console.print(f"[green]Finished Downloading NCBG data for {len(new_plant_list)} new plants.")
+        ncbg_df = ncbg_parser.process_all_plants(pl.DataFrame(ncbg_results))
+
+        pm_parser = PrairieMoonJSONParser()
+        pm_df = pm_parser.process_pm_data()
+
+        console.print(f"[green]Finished processing {len(new_plant_list)} new plants.")
+
+        # 6. Merge, Clean, and Transform new records
+        api = BeeNativeAPI()
+        batch_merged_df = api.merge("beenative/incremental_batch.parquet", [pm_df, ncsu_df, missing_vasc_df, ncbg_df])
+
+        df = api.deduplicate_plants(batch_merged_df)
+        df = api.prepare_for_sqlite(df)
+        df = api.remove_non_nc_plants(df)
+        df = api.create_common_names(df)
+        df = api.merge_wildlife(df)
+        df = api.update_bloomtime(df)
+        df = api.extract_sunlight_values(df)
+        df = api.extract_moisture_values(df)
+        df = api.extract_lifecycle(df)
+        df = api.parse_dimensions(df)
+        df = api.standardize_colors(df)
+        df = api.categorize_plants(df)
+
+        rename_map = {}
+        if "vasc_provenance_status" in df.columns:
+            rename_map["vasc_provenance_status"] = "provenance_status"
+        if "vasc_provenance_notes" in df.columns:
+            rename_map["vasc_provenance_notes"] = "provenance_notes"
+
+        if rename_map:
+            df = df.rename(rename_map)
+
+        # 7. Append directly to SQLite
+        bdb = BeeNativeDB()
+        bdb.save_dataframe(df, table_name="plants")
+        console.print(f"[bold green]✅ Successfully added {len(df)} new records to SQLite!")

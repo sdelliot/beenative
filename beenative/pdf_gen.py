@@ -18,7 +18,7 @@ from reportlab.lib.units import inch
 from reportlab.lib.styles import PropertySet, getSampleStyleSheet
 from reportlab.lib.pagesizes import letter, landscape
 
-from beenative.settings import settings
+from settings import settings
 
 
 class ImageRowItem(TypedDict):

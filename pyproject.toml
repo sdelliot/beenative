@@ -7,6 +7,7 @@ license = { "file" = "LICENSE" }
 authors = [{ "name" = "Steven Elliott" }]
 dependencies = [
   "SQLAlchemy",
+  "adbc-driver-sqlite>=1.12.0",
   "aiosqlite",
   "alembic",
   "beautifulsoup4>=4.14.3",
