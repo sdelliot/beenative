@@ -101,8 +101,8 @@ jobs:
       - name: Install Dependencies
         run: |
           make install
-          flutter clean
-          flutter pub get
+          # flutter clean
+          # flutter pub get
 
       - name: Build app
         shell: bash
